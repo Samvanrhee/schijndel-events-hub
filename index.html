@@ -47,21 +47,50 @@
     const BASE_SCRIPT_URL =
       "https://script.google.com/macros/s/AKfycbx273k5nju4DDNyr4L9yeoRcglSJko--56NQKtclqtK1wglo3kO7vokIJlorR_KU4HF0A/exec";
 
-    // Pak de parameters uit de GitHub-URL,
-    // bijvoorbeeld ?t=TOKEN&page=rooster
+    const hubFrame = document.getElementById("hubFrame");
+
+    // Parameters van GitHub doorgeven bij eerste keer openen.
     const params = new URLSearchParams(window.location.search);
+    const firstUrl = new URL(BASE_SCRIPT_URL);
 
-    // Maak de Apps Script URL
-    const hubUrl = new URL(BASE_SCRIPT_URL);
-
-    // Geef alle parameters door aan Apps Script
     params.forEach((value, key) => {
-      hubUrl.searchParams.set(key, value);
+      firstUrl.searchParams.set(key, value);
     });
 
-    // Apps Script één keer in het iframe laden
-    const hubFrame = document.getElementById("hubFrame");
-    hubFrame.src = hubUrl.toString();
+    // Apps Script in iframe openen.
+    hubFrame.src = firstUrl.toString();
+
+    // Navigatie vanuit Apps Script ontvangen.
+    window.addEventListener("message", function(event) {
+
+      if (!event.data) return;
+      if (event.data.type !== "SCHIJNDEL_NAVIGATE") return;
+
+      const page = event.data.page;
+      const token = event.data.token;
+
+      if (!page || !token) return;
+
+      // Nieuwe Apps Script-pagina MAAR binnen iframe.
+      const nextUrl = new URL(BASE_SCRIPT_URL);
+
+      nextUrl.searchParams.set("t", token);
+      nextUrl.searchParams.set("page", page);
+
+      hubFrame.src = nextUrl.toString();
+
+      // GitHub-adres aanpassen zonder pagina opnieuw te laden.
+      const githubUrl = new URL(window.location.href);
+
+      githubUrl.searchParams.set("t", token);
+      githubUrl.searchParams.set("page", page);
+
+      window.history.replaceState(
+        {},
+        "",
+        githubUrl.toString()
+      );
+    });
   </script>
 
 </body>
