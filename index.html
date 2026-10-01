@@ -2,6 +2,7 @@
 <html lang="nl">
 <head>
   <meta charset="UTF-8">
+
   <meta
     name="viewport"
     content="width=device-width, initial-scale=1, viewport-fit=cover"
@@ -46,31 +47,21 @@
     const BASE_SCRIPT_URL =
       "https://script.google.com/macros/s/AKfycbx273k5nju4DDNyr4L9yeoRcglSJko--56NQKtclqtK1wglo3kO7vokIJlorR_KU4HF0A/exec";
 
+    // Pak de parameters uit de GitHub-URL,
+    // bijvoorbeeld ?t=TOKEN&page=rooster
     const params = new URLSearchParams(window.location.search);
 
+    // Maak de Apps Script URL
     const hubUrl = new URL(BASE_SCRIPT_URL);
 
+    // Geef alle parameters door aan Apps Script
     params.forEach((value, key) => {
       hubUrl.searchParams.set(key, value);
     });
 
-    document.getElementById("hubFrame").src = hubUrl.toString();
-    window.addEventListener("message", function(event) {
-
-  if (!event.data || event.data.type !== "SCHIJNDEL_NAVIGATE") {
-    return;
-  }
-
-  const url = event.data.url;
-
-  if (!url || !url.startsWith(BASE_SCRIPT_URL)) {
-    return;
-  }
-
-  // Alleen het Apps Script iframe wisselen.
-  // GitHub zelf blijft gewoon geopend.
-  document.getElementById("hubFrame").src = url;
-});
+    // Apps Script één keer in het iframe laden
+    const hubFrame = document.getElementById("hubFrame");
+    hubFrame.src = hubUrl.toString();
   </script>
 
 </body>
