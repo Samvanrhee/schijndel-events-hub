@@ -56,24 +56,20 @@
 
     document.getElementById("hubFrame").src = hubUrl.toString();
     window.addEventListener("message", function(event) {
-  if (event.data?.type !== "SCHIJNDEL_NAVIGATE") return;
 
-  const page = event.data.page;
-  const token = event.data.token;
+  if (!event.data || event.data.type !== "SCHIJNDEL_NAVIGATE") {
+    return;
+  }
 
-  if (!page || !token) return;
+  const url = event.data.url;
 
-  const nextUrl = new URL(BASE_SCRIPT_URL);
-  nextUrl.searchParams.set("t", token);
-  nextUrl.searchParams.set("page", page);
+  if (!url || !url.startsWith(BASE_SCRIPT_URL)) {
+    return;
+  }
 
-  document.getElementById("hubFrame").src = nextUrl.toString();
-
-  const browserUrl = new URL(window.location.href);
-  browserUrl.searchParams.set("t", token);
-  browserUrl.searchParams.set("page", page);
-
-  window.history.replaceState({}, "", browserUrl.toString());
+  // Alleen het Apps Script iframe wisselen.
+  // GitHub zelf blijft gewoon geopend.
+  document.getElementById("hubFrame").src = url;
 });
   </script>
 
