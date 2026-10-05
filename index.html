@@ -92,31 +92,30 @@
     }
 
     const pagina = event.data.page;
-    const token = event.data.token;
-    const scriptUrl = event.data.url;
+const nieuwToken = event.data.token;
 
-    if (!pagina || !token) {
-      return;
-    }
+if (!pagina || !nieuwToken) {
+  return;
+}
 
-    // Gebruik rechtstreeks de URL die Apps Script heeft gemaakt.
-    // Alleen terugvallen op zelf opbouwen als die ontbreekt.
-    hubFrame.src =
-      scriptUrl || maakScriptUrl(pagina, token);
+// GitHub bepaalt altijd zelf welke Apps Script-pagina
+// in de iframe geopend moet worden.
+hubFrame.src =
+  maakScriptUrl(pagina, nieuwToken);
 
 
     // Alleen het zichtbare GitHub-adres aanpassen.
     const githubUrl =
       new URL(window.location.href);
 
-    githubUrl.searchParams.set("t", token);
-    githubUrl.searchParams.set("page", pagina);
+    githubUrl.searchParams.set("t", nieuwToken);
+githubUrl.searchParams.set("page", pagina);
 
-    window.history.pushState(
-      {
-        page: pagina,
-        token: token
-      },
+window.history.pushState(
+  {
+    page: pagina,
+    token: nieuwToken
+  },
       "",
       githubUrl.toString()
     );
