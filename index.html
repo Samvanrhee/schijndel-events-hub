@@ -43,55 +43,82 @@
     allow="geolocation"
   ></iframe>
 
-  <script>
-    const BASE_SCRIPT_URL =
-      "https://script.google.com/macros/s/AKfycbx273k5nju4DDNyr4L9yeoRcglSJko--56NQKtclqtK1wglo3kO7vokIJlorR_KU4HF0A/exec";
+ <script>
+  const BASE_SCRIPT_URL =
+    "https://script.google.com/macros/s/AKfycbx273k5nju4DDNyr4L9yeoRcglSJko--56NQKtclqtK1wglo3kO7vokIJlorR_KU4HF0A/exec";
 
-    const hubFrame = document.getElementById("hubFrame");
+  const hubFrame = document.getElementById("hubFrame");
 
-    // Parameters van GitHub doorgeven bij eerste keer openen.
-    const params = new URLSearchParams(window.location.search);
-    const firstUrl = new URL(BASE_SCRIPT_URL);
+  const params = new URLSearchParams(window.location.search);
 
-    params.forEach((value, key) => {
-      firstUrl.searchParams.set(key, value);
-    });
+  const token = params.get("t") || "";
+  const page = params.get("page") || "home";
 
-    // Apps Script in iframe openen.
-    hubFrame.src = firstUrl.toString();
+  function laadPagina(pagina, replaceHistory = false) {
 
-    // Navigatie vanuit Apps Script ontvangen.
-    window.addEventListener("message", function(event) {
+    const scriptUrl = new URL(BASE_SCRIPT_URL);
 
-      if (!event.data) return;
-      if (event.data.type !== "SCHIJNDEL_NAVIGATE") return;
+    if (token) {
+      scriptUrl.searchParams.set("t", token);
+    }
 
-      const page = event.data.page;
-      const token = event.data.token;
+    scriptUrl.searchParams.set("page", pagina);
 
-      if (!page || !token) return;
+    hubFrame.src = scriptUrl.toString();
 
-      // Nieuwe Apps Script-pagina MAAR binnen iframe.
-      const nextUrl = new URL(BASE_SCRIPT_URL);
+    const githubUrl = new URL(window.location.href);
 
-      nextUrl.searchParams.set("t", token);
-      nextUrl.searchParams.set("page", page);
-
-      hubFrame.src = nextUrl.toString();
-
-      // GitHub-adres aanpassen zonder pagina opnieuw te laden.
-      const githubUrl = new URL(window.location.href);
-
+    if (token) {
       githubUrl.searchParams.set("t", token);
-      githubUrl.searchParams.set("page", page);
+    }
 
+    githubUrl.searchParams.set("page", pagina);
+
+    if (replaceHistory) {
       window.history.replaceState(
-        {},
+        { page: pagina },
         "",
         githubUrl.toString()
       );
-    });
-  </script>
+    } else {
+      window.history.pushState(
+        { page: pagina },
+        "",
+        githubUrl.toString()
+      );
+    }
+  }
 
-</body>
-</html>
+  // Eerste pagina laden
+  laadPagina(page, true);
+
+
+  // Navigatie vanuit Apps Script
+  window.addEventListener("message", function(event) {
+
+    if (!event.data) return;
+
+    if (event.data.type !== "SCHIJNDEL_NAVIGATE") {
+      return;
+    }
+
+    const nieuwePagina = event.data.page;
+
+    if (!nieuwePagina) return;
+
+    laadPagina(nieuwePagina);
+  });
+
+
+  // Browser terug / vooruit
+  window.addEventListener("popstate", function() {
+
+    const params =
+      new URLSearchParams(window.location.search);
+
+    const pagina =
+      params.get("page") || "home";
+
+    laadPagina(pagina, true);
+  });
+</script>
