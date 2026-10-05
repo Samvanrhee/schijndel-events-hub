@@ -43,57 +43,46 @@
     allow="geolocation"
   ></iframe>
 
- <script>
+<script>
   const BASE_SCRIPT_URL =
     "https://script.google.com/macros/s/AKfycbx273k5nju4DDNyr4L9yeoRcglSJko--56NQKtclqtK1wglo3kO7vokIJlorR_KU4HF0A/exec";
 
   const hubFrame = document.getElementById("hubFrame");
 
-  const params = new URLSearchParams(window.location.search);
-
-  const token = params.get("t") || "";
-  const page = params.get("page") || "home";
-
-  function laadPagina(pagina, replaceHistory = false) {
-
-    const scriptUrl = new URL(BASE_SCRIPT_URL);
+  function maakScriptUrl(pagina, token) {
+    const url = new URL(BASE_SCRIPT_URL);
 
     if (token) {
-      scriptUrl.searchParams.set("t", token);
+      url.searchParams.set("t", token);
     }
 
-    scriptUrl.searchParams.set("page", pagina);
+    url.searchParams.set("page", pagina || "home");
 
-    hubFrame.src = scriptUrl.toString();
-
-    const githubUrl = new URL(window.location.href);
-
-    if (token) {
-      githubUrl.searchParams.set("t", token);
-    }
-
-    githubUrl.searchParams.set("page", pagina);
-
-    if (replaceHistory) {
-      window.history.replaceState(
-        { page: pagina },
-        "",
-        githubUrl.toString()
-      );
-    } else {
-      window.history.pushState(
-        { page: pagina },
-        "",
-        githubUrl.toString()
-      );
-    }
+    return url.toString();
   }
 
-  // Eerste pagina laden
-  laadPagina(page, true);
+
+  // =========================================================
+  // 1. EERSTE KEER OPENEN
+  // =========================================================
+
+  const eersteParams =
+    new URLSearchParams(window.location.search);
+
+  const eersteToken =
+    eersteParams.get("t") || "";
+
+  const eerstePagina =
+    eersteParams.get("page") || "home";
+
+  hubFrame.src =
+    maakScriptUrl(eerstePagina, eersteToken);
 
 
-  // Navigatie vanuit Apps Script
+  // =========================================================
+  // 2. NAVIGATIE VANUIT APPS SCRIPT
+  // =========================================================
+
   window.addEventListener("message", function(event) {
 
     if (!event.data) return;
@@ -102,23 +91,54 @@
       return;
     }
 
-    const nieuwePagina = event.data.page;
+    const pagina = event.data.page;
+    const token = event.data.token;
+    const scriptUrl = event.data.url;
 
-    if (!nieuwePagina) return;
+    if (!pagina || !token) {
+      return;
+    }
 
-    laadPagina(nieuwePagina);
+    // Gebruik rechtstreeks de URL die Apps Script heeft gemaakt.
+    // Alleen terugvallen op zelf opbouwen als die ontbreekt.
+    hubFrame.src =
+      scriptUrl || maakScriptUrl(pagina, token);
+
+
+    // Alleen het zichtbare GitHub-adres aanpassen.
+    const githubUrl =
+      new URL(window.location.href);
+
+    githubUrl.searchParams.set("t", token);
+    githubUrl.searchParams.set("page", pagina);
+
+    window.history.pushState(
+      {
+        page: pagina,
+        token: token
+      },
+      "",
+      githubUrl.toString()
+    );
   });
 
 
-  // Browser terug / vooruit
+  // =========================================================
+  // 3. TERUG / VOORUIT IN BROWSER
+  // =========================================================
+
   window.addEventListener("popstate", function() {
 
     const params =
       new URLSearchParams(window.location.search);
 
+    const token =
+      params.get("t") || "";
+
     const pagina =
       params.get("page") || "home";
 
-    laadPagina(pagina, true);
+    hubFrame.src =
+      maakScriptUrl(pagina, token);
   });
 </script>
