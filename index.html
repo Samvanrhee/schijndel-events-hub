@@ -87,6 +87,46 @@
 
     if (!event.data) return;
 
+
+    // =====================================================
+    // SNELLE INTERNE PAGINAWISSEL
+    // Alleen GitHub-URL aanpassen.
+    // De iframe wordt NIET opnieuw geladen.
+    // =====================================================
+
+    if (event.data.type === "SCHIJNDEL_HISTORY") {
+
+      const pagina = event.data.page;
+      const nieuwToken = event.data.token;
+
+      if (!pagina || !nieuwToken) {
+        return;
+      }
+
+      const githubUrl =
+        new URL(window.location.href);
+
+      githubUrl.searchParams.set("t", nieuwToken);
+      githubUrl.searchParams.set("page", pagina);
+
+      window.history.pushState(
+        {
+          page: pagina,
+          token: nieuwToken
+        },
+        "",
+        githubUrl.toString()
+      );
+
+      return;
+    }
+
+
+    // =====================================================
+    // NORMALE NAVIGATIE
+    // Alleen gebruikt voor pagina's die nog niet intern zijn.
+    // =====================================================
+
     if (event.data.type !== "SCHIJNDEL_NAVIGATE") {
       return;
     }
