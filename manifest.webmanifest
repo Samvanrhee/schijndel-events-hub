@@ -1,6 +1,7 @@
 {
   "name": "Schijndel Events",
   "short_name": "Schijndel Events",
+"start_url": "./"
   "scope": "./",
   "display": "standalone",
   "background_color": "#11111f",
