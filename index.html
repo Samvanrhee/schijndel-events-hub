@@ -228,119 +228,100 @@
   // Toon de activatieknop vanuit de Apps Script Hub
   // =========================================================
 
+  
+<script>
+  // =========================================================
+  // SCHIJNDEL EVENTS | PUSHMELDINGEN
+  // =========================================================
+
   const pushActivateButton =
-    let pushAanvraagVenster = null;
-let pushAanvraagOrigin = null;
     document.getElementById("pushActivateButton");
-  // Controleer de bestaande meldingstoestemming
-function schijndelControleerPushStatus() {
-  if (!("Notification" in window)) return;
 
-  const bericht = {
-    type: "SCHIJNDEL_PUSH_STATUS",
-    permission: Notification.permission
-  };
+  let pushAanvraagVenster = null;
+  let pushAanvraagOrigin = null;
 
-  hubFrame.contentWindow.postMessage(bericht, "*");
-console.log("Pushstatus verzonden:", bericht.permission);
-
-  try {
-    for (let i = 0; i < hubFrame.contentWindow.frames.length; i++) {
-      hubFrame.contentWindow.frames[i].postMessage(bericht, "*");
-    }
-  } catch (error) {
-    console.warn("Pushstatus kon niet naar een onderliggend iframe worden verzonden.", error);
-  }
-}
-
-// Controleer opnieuw zodra Apps Script de status opvraagt
-window.addEventListener("message", function(event) {
-  if (!event.data ||
-      event.data.type !== "SCHIJNDEL_PUSH_CHECK") {
-    return;
+  function schijndelPushToegestaanAfzender(event) {
+    return (
+      event.origin === "https://script.google.com" ||
+      /^https:\/\/[a-z0-9-]+\.googleusercontent\.com$/.test(event.origin)
+    );
   }
 
-  const afkomstigVanAppsScript =
-    event.origin === "https://script.google.com" ||
-    /^https:\/\/[a-z0-9-]+\.googleusercontent\.com$/.test(event.origin);
+  function schijndelPushStatusVerzenden(venster, origin) {
+    if (!venster || !origin) return;
 
-  console.log("Pushcontrole ontvangen:", event.origin, event.data.type);
-  if (!afkomstigVanAppsScript) return;
-
-if (event.source) {
-  event.source.postMessage({
-    type: "SCHIJNDEL_PUSH_STATUS",
-    permission: ("Notification" in window)
+    const permission = ("Notification" in window)
       ? Notification.permission
-      : "unsupported"
-  }, event.origin);
-}
-});
+      : "unsupported";
 
+    venster.postMessage({
+      type: "SCHIJNDEL_PUSH_STATUS",
+      permission: permission
+    }, origin);
+  }
+
+  // Ontvang berichten vanuit Apps Script.
   window.addEventListener("message", function(event) {
+    if (!schijndelPushToegestaanAfzender(event)) return;
+    if (!event.data || !event.data.type) return;
 
-    // Alleen berichten van onze eigen Hub-iframe accepteren.
-    
-const afkomstigVanAppsScript =
-  event.origin === "https://script.google.com" ||
-  /^https:\/\/[a-z0-9-]+\.googleusercontent\.com$/.test(event.origin);
-
-if (!afkomstigVanAppsScript) {
-  return;
-}
-
-
-    if (!event.data ||
-        event.data.type !== "SCHIJNDEL_PUSH_ENABLE") {
+    if (event.data.type === "SCHIJNDEL_PUSH_CHECK") {
+      schijndelPushStatusVerzenden(event.source, event.origin);
       return;
     }
+
+    if (event.data.type !== "SCHIJNDEL_PUSH_ENABLE") return;
 
     pushAanvraagVenster = event.source;
-pushAanvraagOrigin = event.origin;
+    pushAanvraagOrigin = event.origin;
 
-if ("Notification" in window &&
-    Notification.permission === "granted") {
-
-  pushActivateButton.hidden = true;
-
-  if (pushAanvraagVenster) {
-    pushAanvraagVenster.postMessage({
-      type: "SCHIJNDEL_PUSH_STATUS",
-      permission: "granted"
-    }, pushAanvraagOrigin);
-  }
-
-} else {
-  pushActivateButton.hidden = false;
-}
+    if (
+      "Notification" in window &&
+      Notification.permission === "granted"
+    ) {
+      pushActivateButton.hidden = true;
+      schijndelPushStatusVerzenden(
+        pushAanvraagVenster,
+        pushAanvraagOrigin
+      );
+    } else {
+      pushActivateButton.hidden = false;
+    }
   });
 
-  pushActivateButton.addEventListener("click", function() {
+  // De turquoise knop vraagt toestemming aan.
+  pushActivateButton.addEventListener("click", async function() {
     if (!("Notification" in window)) {
       alert("Dit apparaat ondersteunt geen browsermeldingen.");
+      schijndelPushStatusVerzenden(
+        pushAanvraagVenster,
+        pushAanvraagOrigin
+      );
       return;
     }
 
-    Notification.requestPermission().then(function(permission) {
+    try {
+      const permission = await Notification.requestPermission();
+
       if (permission === "granted") {
-  pushActivateButton.hidden = true;
+        pushActivateButton.hidden = true;
+      }
 
-  pushAanvraagVenster.postMessage
-    type: "SCHIJNDEL_PUSH_STATUS",
-    permission: "granted"
-  }, pushAanvraagOrigin);
+      // Werk de tekst in Apps Script direct bij.
+      schijndelPushStatusVerzenden(
+        pushAanvraagVenster,
+        pushAanvraagOrigin
+      );
 
-  alert("Toestemming voor meldingen is gegeven.");
-
-} else {
-  pushAanvraagVenster.postMessage
-    type: "SCHIJNDEL_PUSH_STATUS",
-    permission: permission
-  }, pushAanvraagOrigin);
-
-  alert("Meldingstoestemming is niet gegeven.");
-}
-    });
+      if (permission === "granted") {
+        alert("Toestemming voor meldingen is gegeven.");
+      } else {
+        alert("Meldingstoestemming is niet gegeven.");
+      }
+    } catch (error) {
+      console.error("Pushmelding toestemming mislukt:", error);
+      alert("Het aanvragen van meldingstoestemming is mislukt.");
+    }
   });
 </script>
 
