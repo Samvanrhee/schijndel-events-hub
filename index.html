@@ -26,7 +26,7 @@
       background: #11111f;
     }
 
-        #hubFrame {
+    #hubFrame {
       position: fixed;
       z-index: 1;
       inset: 0;
@@ -225,12 +225,6 @@
 <script>
   // =========================================================
   // SCHIJNDEL EVENTS | PUSHMELDINGEN
-  // Toon de activatieknop vanuit de Apps Script Hub
-  // =========================================================
-
-  
-  // =========================================================
-  // SCHIJNDEL EVENTS | PUSHMELDINGEN
   // =========================================================
 
   const pushActivateButton =
@@ -261,33 +255,14 @@
 
   // Ontvang berichten vanuit Apps Script.
   window.addEventListener("message", function(event) {
+
     if (!schijndelPushToegestaanAfzender(event)) return;
     if (!event.data || !event.data.type) return;
 
     if (event.data.type === "SCHIJNDEL_PUSH_CHECK") {
-
-  const permission = ("Notification" in window)
-    ? Notification.permission
-    : "unsupported";
-
-  const bericht = {
-    type: "SCHIJNDEL_PUSH_STATUS",
-    permission: permission
-  };
-
-  // Antwoord direct aan de aanvrager.
-  if (event.source) {
-    event.source.postMessage(bericht, event.origin);
-  }
-
-  // Informeer ook de Apps Script-iframe.
-  if (hubFrame.contentWindow &&
-      hubFrame.contentWindow !== event.source) {
-    hubFrame.contentWindow.postMessage(bericht, "*");
-  }
-
-  return;
-}
+      schijndelPushStatusVerzenden(event.source, event.origin);
+      return;
+    }
 
     if (event.data.type !== "SCHIJNDEL_PUSH_ENABLE") return;
 
@@ -299,10 +274,12 @@
       Notification.permission === "granted"
     ) {
       pushActivateButton.hidden = true;
+
       schijndelPushStatusVerzenden(
         pushAanvraagVenster,
         pushAanvraagOrigin
       );
+
     } else {
       pushActivateButton.hidden = false;
     }
@@ -310,12 +287,15 @@
 
   // De turquoise knop vraagt toestemming aan.
   pushActivateButton.addEventListener("click", async function() {
+
     if (!("Notification" in window)) {
       alert("Dit apparaat ondersteunt geen browsermeldingen.");
+
       schijndelPushStatusVerzenden(
         pushAanvraagVenster,
         pushAanvraagOrigin
       );
+
       return;
     }
 
@@ -337,6 +317,7 @@
       } else {
         alert("Meldingstoestemming is niet gegeven.");
       }
+
     } catch (error) {
       console.error("Pushmelding toestemming mislukt:", error);
       alert("Het aanvragen van meldingstoestemming is mislukt.");
@@ -346,3 +327,4 @@
 
 </body>
 </html>
+
