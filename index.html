@@ -264,7 +264,14 @@ window.addEventListener("message", function(event) {
 
   if (!afkomstigVanAppsScript) return;
 
-  schijndelControleerPushStatus();
+if (event.source) {
+  event.source.postMessage({
+    type: "SCHIJNDEL_PUSH_STATUS",
+    permission: ("Notification" in window)
+      ? Notification.permission
+      : "unsupported"
+  }, event.origin);
+}
 });
 
   window.addEventListener("message", function(event) {
