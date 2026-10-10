@@ -230,6 +230,31 @@
 
   const pushActivateButton =
     document.getElementById("pushActivateButton");
+  // Controleer de bestaande meldingstoestemming
+function schijndelControleerPushStatus() {
+  if (!("Notification" in window)) return;
+
+  hubFrame.contentWindow.postMessage({
+    type: "SCHIJNDEL_PUSH_STATUS",
+    permission: Notification.permission
+  }, "*");
+}
+
+// Controleer opnieuw zodra Apps Script de status opvraagt
+window.addEventListener("message", function(event) {
+  if (!event.data ||
+      event.data.type !== "SCHIJNDEL_PUSH_CHECK") {
+    return;
+  }
+
+  const afkomstigVanAppsScript =
+    event.origin === "https://script.google.com" ||
+    /^https:\/\/[a-z0-9-]+\.googleusercontent\.com$/.test(event.origin);
+
+  if (!afkomstigVanAppsScript) return;
+
+  schijndelControleerPushStatus();
+});
 
   window.addEventListener("message", function(event) {
 
