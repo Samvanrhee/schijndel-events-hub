@@ -195,5 +195,66 @@
   }
 </script>
 
+<button
+  id="pushActivateButton"
+  type="button"
+  hidden
+  style="
+    position:fixed;
+    z-index:99999;
+    bottom:24px;
+    left:50%;
+    transform:translateX(-50%);
+    padding:14px 22px;
+    border:0;
+    border-radius:14px;
+    background:#65cedb;
+    color:#11111f;
+    font:600 16px Arial,sans-serif;
+    cursor:pointer;
+  "
+>
+  Pushmeldingen inschakelen
+</button>
+
+<script>
+  // =========================================================
+  // SCHIJNDEL EVENTS | PUSHMELDINGEN
+  // Toon de activatieknop vanuit de Apps Script Hub
+  // =========================================================
+
+  const pushActivateButton =
+    document.getElementById("pushActivateButton");
+
+  window.addEventListener("message", function(event) {
+
+    // Alleen berichten van onze eigen Hub-iframe accepteren.
+    if (event.source !== hubFrame.contentWindow) return;
+
+    if (!event.data ||
+        event.data.type !== "SCHIJNDEL_PUSH_ENABLE") {
+      return;
+    }
+
+    pushActivateButton.hidden = false;
+  });
+
+  pushActivateButton.addEventListener("click", function() {
+    if (!("Notification" in window)) {
+      alert("Dit apparaat ondersteunt geen browsermeldingen.");
+      return;
+    }
+
+    Notification.requestPermission().then(function(permission) {
+      if (permission === "granted") {
+        pushActivateButton.hidden = true;
+        alert("Toestemming voor meldingen is gegeven.");
+      } else {
+        alert("Meldingstoestemming is niet gegeven.");
+      }
+    });
+  });
+</script>
+
 </body>
 </html>
