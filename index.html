@@ -234,8 +234,7 @@ const afkomstigVanAppsScript =
   event.origin === "https://script.google.com" ||
   /^https:\/\/[a-z0-9-]+\.googleusercontent\.com$/.test(event.origin);
 
-if (!afkomstigVanAppsScript ||
-    event.source !== hubFrame.contentWindow) {
+if (!afkomstigVanAppsScript) {
   return;
 }
 
