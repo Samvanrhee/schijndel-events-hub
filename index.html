@@ -266,9 +266,29 @@
     if (!event.data || !event.data.type) return;
 
     if (event.data.type === "SCHIJNDEL_PUSH_CHECK") {
-      schijndelPushStatusVerzenden(event.source, event.origin);
-      return;
-    }
+
+  const permission = ("Notification" in window)
+    ? Notification.permission
+    : "unsupported";
+
+  const bericht = {
+    type: "SCHIJNDEL_PUSH_STATUS",
+    permission: permission
+  };
+
+  // Antwoord direct aan de aanvrager.
+  if (event.source) {
+    event.source.postMessage(bericht, event.origin);
+  }
+
+  // Informeer ook de Apps Script-iframe.
+  if (hubFrame.contentWindow &&
+      hubFrame.contentWindow !== event.source) {
+    hubFrame.contentWindow.postMessage(bericht, "*");
+  }
+
+  return;
+}
 
     if (event.data.type !== "SCHIJNDEL_PUSH_ENABLE") return;
 
