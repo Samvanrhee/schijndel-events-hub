@@ -229,7 +229,10 @@
   window.addEventListener("message", function(event) {
 
     // Alleen berichten van onze eigen Hub-iframe accepteren.
-    if (event.source !== hubFrame.contentWindow) return;
+    if (event.origin !== "https://script.google.com" &&
+    event.origin !== "https://script.googleusercontent.com") {
+  return;
+}
 
     if (!event.data ||
         event.data.type !== "SCHIJNDEL_PUSH_ENABLE") {
