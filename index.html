@@ -229,6 +229,8 @@
   // =========================================================
 
   const pushActivateButton =
+    let pushAanvraagVenster = null;
+let pushAanvraagOrigin = null;
     document.getElementById("pushActivateButton");
   // Controleer de bestaande meldingstoestemming
 function schijndelControleerPushStatus() {
@@ -293,7 +295,10 @@ if (!afkomstigVanAppsScript) {
       return;
     }
 
-    pushActivateButton.hidden = false;
+    pushAanvraagVenster = event.source;
+pushAanvraagOrigin = event.origin;
+
+pushActivateButton.hidden = false;
   });
 
   pushActivateButton.addEventListener("click", function() {
@@ -306,18 +311,18 @@ if (!afkomstigVanAppsScript) {
       if (permission === "granted") {
   pushActivateButton.hidden = true;
 
-  hubFrame.contentWindow.postMessage({
+  pushAanvraagVenster.postMessage
     type: "SCHIJNDEL_PUSH_STATUS",
     permission: "granted"
-  }, "*");
+  }, pushAanvraagOrigin);
 
   alert("Toestemming voor meldingen is gegeven.");
 
 } else {
-  hubFrame.contentWindow.postMessage({
+  pushAanvraagVenster.postMessage
     type: "SCHIJNDEL_PUSH_STATUS",
     permission: permission
-  }, "*");
+  }, pushAanvraagOrigin);
 
   alert("Meldingstoestemming is niet gegeven.");
 }
