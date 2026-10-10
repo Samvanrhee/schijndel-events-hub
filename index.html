@@ -260,11 +260,23 @@ if (!afkomstigVanAppsScript) {
 
     Notification.requestPermission().then(function(permission) {
       if (permission === "granted") {
-        pushActivateButton.hidden = true;
-        alert("Toestemming voor meldingen is gegeven.");
-      } else {
-        alert("Meldingstoestemming is niet gegeven.");
-      }
+  pushActivateButton.hidden = true;
+
+  hubFrame.contentWindow.postMessage({
+    type: "SCHIJNDEL_PUSH_STATUS",
+    permission: "granted"
+  }, "*");
+
+  alert("Toestemming voor meldingen is gegeven.");
+
+} else {
+  hubFrame.contentWindow.postMessage({
+    type: "SCHIJNDEL_PUSH_STATUS",
+    permission: permission
+  }, "*");
+
+  alert("Meldingstoestemming is niet gegeven.");
+}
     });
   });
 </script>
