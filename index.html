@@ -234,10 +234,20 @@
 function schijndelControleerPushStatus() {
   if (!("Notification" in window)) return;
 
-  hubFrame.contentWindow.postMessage({
+  const bericht = {
     type: "SCHIJNDEL_PUSH_STATUS",
     permission: Notification.permission
-  }, "*");
+  };
+
+  hubFrame.contentWindow.postMessage(bericht, "*");
+
+  try {
+    for (let i = 0; i < hubFrame.contentWindow.frames.length; i++) {
+      hubFrame.contentWindow.frames[i].postMessage(bericht, "*");
+    }
+  } catch (error) {
+    console.warn("Pushstatus kon niet naar een onderliggend iframe worden verzonden.", error);
+  }
 }
 
 // Controleer opnieuw zodra Apps Script de status opvraagt
