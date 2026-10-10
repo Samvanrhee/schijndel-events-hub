@@ -298,7 +298,21 @@ if (!afkomstigVanAppsScript) {
     pushAanvraagVenster = event.source;
 pushAanvraagOrigin = event.origin;
 
-pushActivateButton.hidden = false;
+if ("Notification" in window &&
+    Notification.permission === "granted") {
+
+  pushActivateButton.hidden = true;
+
+  if (pushAanvraagVenster) {
+    pushAanvraagVenster.postMessage({
+      type: "SCHIJNDEL_PUSH_STATUS",
+      permission: "granted"
+    }, pushAanvraagOrigin);
+  }
+
+} else {
+  pushActivateButton.hidden = false;
+}
   });
 
   pushActivateButton.addEventListener("click", function() {
