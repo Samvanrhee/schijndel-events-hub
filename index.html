@@ -262,6 +262,7 @@ window.addEventListener("message", function(event) {
     event.origin === "https://script.google.com" ||
     /^https:\/\/[a-z0-9-]+\.googleusercontent\.com$/.test(event.origin);
 
+  console.log("Pushcontrole ontvangen:", event.origin, event.data.type);
   if (!afkomstigVanAppsScript) return;
 
 if (event.source) {
