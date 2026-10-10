@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="nl">
 <head>
@@ -8,11 +9,11 @@
     content="width=device-width, initial-scale=1, viewport-fit=cover"
   >
 
-    <title>Schijndel Events</title>
-<meta name="apple-mobile-web-app-title" content="Schijndel Events">
-  
+  <title>Schijndel Events</title>
+  <meta name="apple-mobile-web-app-title" content="Schijndel Events">
+
   <link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png?v=2">
-<link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png">
 
   <style>
     html,
@@ -65,7 +66,6 @@
     return url.toString();
   }
 
-
   // =========================================================
   // 1. EERSTE KEER OPENEN
   // =========================================================
@@ -82,7 +82,6 @@
   hubFrame.src =
     maakScriptUrl(eerstePagina, eersteToken);
 
-
   // =========================================================
   // 2. NAVIGATIE VANUIT APPS SCRIPT
   // =========================================================
@@ -90,13 +89,6 @@
   window.addEventListener("message", function(event) {
 
     if (!event.data) return;
-
-
-    // =====================================================
-    // SNELLE INTERNE PAGINAWISSEL
-    // Alleen GitHub-URL aanpassen.
-    // De iframe wordt NIET opnieuw geladen.
-    // =====================================================
 
     if (event.data.type === "SCHIJNDEL_HISTORY") {
 
@@ -125,46 +117,35 @@
       return;
     }
 
-
-    // =====================================================
-    // NORMALE NAVIGATIE
-    // Alleen gebruikt voor pagina's die nog niet intern zijn.
-    // =====================================================
-
     if (event.data.type !== "SCHIJNDEL_NAVIGATE") {
       return;
     }
 
     const pagina = event.data.page;
-const nieuwToken = event.data.token;
+    const nieuwToken = event.data.token;
 
-if (!pagina || !nieuwToken) {
-  return;
-}
+    if (!pagina || !nieuwToken) {
+      return;
+    }
 
-// GitHub bepaalt altijd zelf welke Apps Script-pagina
-// in de iframe geopend moet worden.
-hubFrame.src =
-  maakScriptUrl(pagina, nieuwToken);
+    hubFrame.src =
+      maakScriptUrl(pagina, nieuwToken);
 
-
-    // Alleen het zichtbare GitHub-adres aanpassen.
     const githubUrl =
       new URL(window.location.href);
 
     githubUrl.searchParams.set("t", nieuwToken);
-githubUrl.searchParams.set("page", pagina);
+    githubUrl.searchParams.set("page", pagina);
 
-window.history.pushState(
-  {
-    page: pagina,
-    token: nieuwToken
-  },
+    window.history.pushState(
+      {
+        page: pagina,
+        token: nieuwToken
+      },
       "",
       githubUrl.toString()
     );
   });
-
 
   // =========================================================
   // 3. TERUG / VOORUIT IN BROWSER
@@ -184,4 +165,35 @@ window.history.pushState(
     hubFrame.src =
       maakScriptUrl(pagina, token);
   });
+
+  // =========================================================
+  // 4. FIREBASE PUSH - SERVICE WORKER REGISTRATIE
+  // =========================================================
+
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", async function() {
+      try {
+        const registration = await navigator.serviceWorker.register(
+          "./firebase-messaging-sw.js",
+          {
+            scope: "./"
+          }
+        );
+
+        console.log(
+          "Schijndel Events push-serviceworker geregistreerd:",
+          registration.scope
+        );
+
+      } catch (error) {
+        console.error(
+          "Schijndel Events push-serviceworker fout:",
+          error
+        );
+      }
+    });
+  }
 </script>
+
+</body>
+</html>
