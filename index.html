@@ -406,7 +406,8 @@ localStorage.setItem("SCHIJNDEL_PUSH_ACTIEF", "NEE");
 
   event.source.postMessage({
     type: "SCHIJNDEL_PUSH_TOKEN",
-    fcmToken: null
+    fcmToken: null,
+    foutmelding: String(error.message || error)
   }, event.origin);
 }
 
