@@ -240,7 +240,20 @@ firebase.initializeApp({
 });
 
 const schijndelMessaging = firebase.messaging();
-  
+async function schijndelBestaandePushToken() {
+  if (
+    !("Notification" in window) ||
+    Notification.permission !== "granted"
+  ) {
+    return null;
+  }
+
+  const actief = localStorage.getItem("SCHIJNDEL_PUSH_ACTIEF");
+
+  if (actief !== "JA") return null;
+
+  return await schijndelPushTokenOphalen();
+}  
 async function schijndelPushTokenOphalen() {
   if (!("Notification" in window) ||
       Notification.permission !== "granted") {
@@ -300,23 +313,73 @@ async function schijndelPushTokenVerwijderen() {
   }
 
   // Ontvang berichten vanuit Apps Script.
-  window.addEventListener("message", function(event) {
+  window.addEventListener("message", async function(event) {
 
     if (!schijndelPushToegestaanAfzender(event)) return;
     if (!event.data || !event.data.type) return;
 
     if (event.data.type === "SCHIJNDEL_PUSH_CHECK") {
-      schijndelPushStatusVerzenden(event.source, event.origin);
-      return;
+  schijndelPushStatusVerzenden(event.source, event.origin);
+
+  if (
+    "Notification" in window &&
+    Notification.permission === "granted"
+  ) {
+    try {
+      const fcmToken = await schijndelBestaandePushToken();
+
+      event.source.postMessage({
+        type: "SCHIJNDEL_PUSH_CHECK_TOKEN",
+        fcmToken: fcmToken
+      }, event.origin);
+
+    } catch (error) {
+      console.error("Pushstatus controleren mislukt:", error);
+
+      event.source.postMessage({
+        type: "SCHIJNDEL_PUSH_CHECK_TOKEN",
+        fcmToken: null
+      }, event.origin);
     }
+  }
+
+  return;
+}
 if (event.data.type === "SCHIJNDEL_PUSH_DISABLE") {
-  schijndelPushTokenVerwijderen().then(function(verwijderd) {
+  try {
+    const fcmToken = await schijndelPushTokenOphalen();
+
+    event.source.postMessage({
+      type: "SCHIJNDEL_PUSH_UNREGISTER",
+      fcmToken: fcmToken
+    }, event.origin);
+
+  } catch (error) {
+    console.error("Push uitschakelen voorbereiden mislukt:", error);
+
     event.source.postMessage({
       type: "SCHIJNDEL_PUSH_DISABLED",
-      success: verwijderd
+      success: false
     }, event.origin);
-  });
+  }
+
   pushActivateButton.hidden = true;
+  return;
+}
+    if (event.data.type === "SCHIJNDEL_PUSH_REGISTERED") {
+  localStorage.setItem("SCHIJNDEL_PUSH_ACTIEF", "JA");
+  return;
+}
+    if (event.data.type === "SCHIJNDEL_PUSH_DELETE_CONFIRMED") {
+  const verwijderd = await schijndelPushTokenVerwijderen();
+
+localStorage.setItem("SCHIJNDEL_PUSH_ACTIEF", "NEE");
+
+  event.source.postMessage({
+    type: "SCHIJNDEL_PUSH_DISABLED",
+    success: verwijderd
+  }, event.origin);
+
   return;
 }
     if (event.data.type !== "SCHIJNDEL_PUSH_ENABLE") return;
@@ -325,19 +388,26 @@ if (event.data.type === "SCHIJNDEL_PUSH_DISABLE") {
     pushAanvraagOrigin = event.origin;
 
     if (
-      "Notification" in window &&
-      Notification.permission === "granted"
-    ) {
-      pushActivateButton.hidden = true;
+  "Notification" in window &&
+  Notification.permission === "granted"
+) {
+  pushActivateButton.hidden = true;
 
-      schijndelPushStatusVerzenden(
-        pushAanvraagVenster,
-        pushAanvraagOrigin
-      );
+  try {
+    const fcmToken = await schijndelPushTokenOphalen();
 
-    } else {
-      pushActivateButton.hidden = false;
-    }
+    event.source.postMessage({
+      type: "SCHIJNDEL_PUSH_TOKEN",
+      fcmToken: fcmToken
+    }, event.origin);
+
+  } catch (error) {
+    console.error("FCM-token ophalen mislukt:", error);
+  }
+
+} else {
+  pushActivateButton.hidden = false;
+}
   });
 
   // De turquoise knop vraagt toestemming aan.
@@ -358,8 +428,27 @@ if (event.data.type === "SCHIJNDEL_PUSH_DISABLE") {
       const permission = await Notification.requestPermission();
 
       if (permission === "granted") {
-        pushActivateButton.hidden = true;
-      }
+  pushActivateButton.hidden = true;
+
+  try {
+    const fcmToken = await schijndelPushTokenOphalen();
+
+    if (!fcmToken) {
+      throw new Error("Geen Firebase-token ontvangen.");
+    }
+
+    if (pushAanvraagVenster && pushAanvraagOrigin) {
+      pushAanvraagVenster.postMessage({
+        type: "SCHIJNDEL_PUSH_TOKEN",
+        fcmToken: fcmToken
+      }, pushAanvraagOrigin);
+    }
+
+  } catch (error) {
+    console.error("Pushregistratie mislukt:", error);
+    alert("Pushregistratie is niet gelukt.");
+  }
+}
 
       // Werk de tekst in Apps Script direct bij.
       schijndelPushStatusVerzenden(
@@ -367,11 +456,9 @@ if (event.data.type === "SCHIJNDEL_PUSH_DISABLE") {
         pushAanvraagOrigin
       );
 
-      if (permission === "granted") {
-        alert("Toestemming voor meldingen is gegeven.");
-      } else {
-        alert("Meldingstoestemming is niet gegeven.");
-      }
+      if (permission !== "granted") {
+  alert("Meldingstoestemming is niet gegeven.");
+}
 
     } catch (error) {
       console.error("Pushmelding toestemming mislukt:", error);
