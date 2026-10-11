@@ -43,6 +43,8 @@
       display: none !important;
     }
   </style>
+  <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-messaging-compat.js"></script>
 </head>
 
 <body>
@@ -226,6 +228,50 @@
   // =========================================================
   // SCHIJNDEL EVENTS | PUSHMELDINGEN
   // =========================================================
+const SCHIJNDEL_VAPID_KEY =
+  "BP_1BO9Q-QbzNDf1GgT7C7nwnYafwR8qHnOkiyFYsenvEU1O6lAfvoGm4sKKzL71rFVDaVup2IrvbqGH5bVWcyw";
+firebase.initializeApp({
+  apiKey: "AIzaSyCP9_UB0U-LNSxR8b_RtuVpdV9dUlVUE7k",
+  authDomain: "schijndel-events-hub-6bc6a.firebaseapp.com",
+  projectId: "schijndel-events-hub-6bc6a",
+  storageBucket: "schijndel-events-hub-6bc6a.firebasestorage.app",
+  messagingSenderId: "909465507127",
+  appId: "1:909465507127:web:b01c1cf1040c63b7f136b2"
+});
+
+const schijndelMessaging = firebase.messaging();
+  
+async function schijndelPushTokenOphalen() {
+  if (!("Notification" in window) ||
+      Notification.permission !== "granted") {
+    return null;
+  }
+
+  const registration = await navigator.serviceWorker.ready;
+
+  const token = await schijndelMessaging.getToken({
+    vapidKey: SCHIJNDEL_VAPID_KEY,
+    serviceWorkerRegistration: registration
+  });
+
+  return token || null;
+}
+
+
+async function schijndelPushTokenVerwijderen() {
+  try {
+    const verwijderd = await schijndelMessaging.deleteToken();
+
+    if (verwijderd) {
+      console.log("Schijndel Events: pushregistratie verwijderd.");
+    }
+
+    return verwijderd;
+  } catch (error) {
+    console.error("Pushregistratie verwijderen mislukt:", error);
+    return false;
+  }
+}
 
   const pushActivateButton =
     document.getElementById("pushActivateButton");
@@ -263,7 +309,16 @@
       schijndelPushStatusVerzenden(event.source, event.origin);
       return;
     }
-
+if (event.data.type === "SCHIJNDEL_PUSH_DISABLE") {
+  schijndelPushTokenVerwijderen().then(function(verwijderd) {
+    event.source.postMessage({
+      type: "SCHIJNDEL_PUSH_DISABLED",
+      success: verwijderd
+    }, event.origin);
+  });
+  pushActivateButton.hidden = true;
+  return;
+}
     if (event.data.type !== "SCHIJNDEL_PUSH_ENABLE") return;
 
     pushAanvraagVenster = event.source;
