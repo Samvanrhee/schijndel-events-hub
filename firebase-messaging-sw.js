@@ -13,7 +13,7 @@ importScripts(
 );
 
 firebase.initializeApp({
-  apiKey: "AIzaSyCP9_UB0U-LNSxR8b_RtuVpdV9dUlVUE7k",
+  apiKey: "AIzaSyCP9_UB0U-LNSxR8b_RtuVpdV9dUlvUE7k",
   authDomain: "schijndel-events-hub-6bc6a.firebaseapp.com",
   projectId: "schijndel-events-hub-6bc6a",
   storageBucket: "schijndel-events-hub-6bc6a.firebasestorage.app",
