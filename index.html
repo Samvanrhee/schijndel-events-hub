@@ -402,8 +402,13 @@ localStorage.setItem("SCHIJNDEL_PUSH_ACTIEF", "NEE");
     }, event.origin);
 
   } catch (error) {
-    console.error("FCM-token ophalen mislukt:", error);
-  }
+  console.error("FCM-token ophalen mislukt:", error);
+
+  event.source.postMessage({
+    type: "SCHIJNDEL_PUSH_TOKEN",
+    fcmToken: null
+  }, event.origin);
+}
 
 } else {
   pushActivateButton.hidden = false;
