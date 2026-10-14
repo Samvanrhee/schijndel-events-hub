@@ -252,7 +252,17 @@ async function schijndelBestaandePushToken() {
 
   if (actief !== "JA") return null;
 
-  return await schijndelPushTokenOphalen();
+  const token = await schijndelPushTokenOphalen();
+
+if (token) {
+  const vorigToken = localStorage.getItem("SCHIJNDEL_FCM_TOKEN");
+
+  if (vorigToken !== token) {
+    localStorage.setItem("SCHIJNDEL_FCM_TOKEN", token);
+  }
+}
+
+return token;
 }  
 async function schijndelPushTokenOphalen() {
   if (!("Notification" in window) ||
