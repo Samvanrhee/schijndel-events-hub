@@ -202,27 +202,88 @@
   }
 </script>
 
-<button
-  id="pushActivateButton"
-  type="button"
+<div
+  id="pushPopup"
   hidden
   style="
     position:fixed;
+    inset:0;
     z-index:99999;
-    bottom:24px;
-    left:50%;
-    transform:translateX(-50%);
-    padding:14px 22px;
-    border:0;
-    border-radius:14px;
-    background:#65cedb;
-    color:#11111f;
-    font:600 16px Arial,sans-serif;
-    cursor:pointer;
+    display:none;
+    align-items:center;
+    justify-content:center;
+    padding:24px;
+    background:rgba(17,17,31,0.65);
   "
 >
-  Pushmeldingen inschakelen
-</button>
+  <div style="
+    width:100%;
+    max-width:360px;
+    padding:28px 24px;
+    border-radius:22px;
+    background:#ffffff;
+    color:#11111f;
+    font-family:Arial,sans-serif;
+    text-align:center;
+    box-shadow:0 20px 60px rgba(0,0,0,0.2);
+  ">
+    <div style="font-size:30px;margin-bottom:12px;">🔔</div>
+
+    <div style="
+      font-size:21px;
+      font-weight:800;
+      margin-bottom:12px;
+    ">
+      Pushmeldingen inschakelen
+    </div>
+
+    <p style="
+      font-size:14px;
+      line-height:1.6;
+      color:#596273;
+      margin-bottom:24px;
+    ">
+      Ontvang belangrijke Crew-informatie,
+      roosterwijzigingen en noodmeldingen
+      rechtstreeks op je telefoon.
+    </p>
+
+    <button
+      id="pushActivateButton"
+      type="button"
+      hidden
+      style="
+        width:100%;
+        padding:15px;
+        border:0;
+        border-radius:13px;
+        background:#65cedb;
+        color:#11111f;
+        font-size:15px;
+        font-weight:800;
+        cursor:pointer;
+      "
+    >
+      Toestemming geven
+    </button>
+
+    <button
+      id="pushPopupClose"
+      type="button"
+      style="
+        margin-top:15px;
+        padding:10px;
+        border:0;
+        background:transparent;
+        color:#596273;
+        font-size:14px;
+        cursor:pointer;
+      "
+    >
+      Annuleren
+    </button>
+  </div>
+</div>
 
 <script>
   // =========================================================
@@ -298,6 +359,29 @@ async function schijndelPushTokenVerwijderen() {
 
   const pushActivateButton =
     document.getElementById("pushActivateButton");
+  
+const pushPopup = document.getElementById("pushPopup");
+const pushPopupClose = document.getElementById("pushPopupClose");
+
+function schijndelPushPopupOpenen() {
+  if (!pushPopup || !pushActivateButton) return;
+
+  pushPopup.hidden = false;
+  pushPopup.style.display = "flex";
+  pushActivateButton.hidden = false;
+}
+
+function schijndelPushPopupSluiten() {
+  if (!pushPopup) return;
+
+  pushPopup.style.display = "none";
+  pushPopup.hidden = true;
+}
+
+if (pushPopupClose) {
+  pushPopupClose.addEventListener("click", schijndelPushPopupSluiten);
+}
+
 
   let pushAanvraagVenster = null;
   let pushAanvraagOrigin = null;
@@ -373,13 +457,19 @@ if (event.data.type === "SCHIJNDEL_PUSH_DISABLE") {
     }, event.origin);
   }
 
-  pushActivateButton.hidden = true;
-  return;
+  
+schijndelPushPopupSluiten();
+pushActivateButton.hidden = true;
+return;
+
 }
-    if (event.data.type === "SCHIJNDEL_PUSH_REGISTERED") {
+    
+if (event.data.type === "SCHIJNDEL_PUSH_REGISTERED") {
   localStorage.setItem("SCHIJNDEL_PUSH_ACTIEF", "JA");
+  schijndelPushPopupSluiten();
   return;
 }
+
     if (event.data.type === "SCHIJNDEL_PUSH_DELETE_CONFIRMED") {
   const verwijderd = await schijndelPushTokenVerwijderen();
 
@@ -421,9 +511,11 @@ localStorage.setItem("SCHIJNDEL_PUSH_ACTIEF", "NEE");
   }, event.origin);
 }
 
+
 } else {
-  pushActivateButton.hidden = false;
+  schijndelPushPopupOpenen();
 }
+
   });
 
   // De turquoise knop vraagt toestemming aan.
@@ -443,8 +535,11 @@ localStorage.setItem("SCHIJNDEL_PUSH_ACTIEF", "NEE");
     try {
       const permission = await Notification.requestPermission();
 
-      if (permission === "granted") {
+      
+if (permission === "granted") {
+  schijndelPushPopupSluiten();
   pushActivateButton.hidden = true;
+
 
   try {
     const fcmToken = await schijndelPushTokenOphalen();
