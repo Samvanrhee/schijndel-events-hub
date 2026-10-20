@@ -41,12 +41,115 @@
     #pushActivateButton[hidden] {
       display: none !important;
     }
+    
+/* PAGE LOADER - IDENTIEK AAN APPS SCRIPT */
+:root {
+  --se-navy: #11111f;
+  --se-turquoise: #68d2df;
+}
+
+.page-loader {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  box-sizing: border-box;
+  background: var(--se-navy);
+  opacity: 1;
+  visibility: visible;
+  transition: opacity .32s ease, visibility .32s ease;
+}
+
+.page-loader.loader-hide {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.loader-content {
+  width: 100%;
+  max-width: 390px;
+  text-align: center;
+  color: white;
+}
+
+.loader-logo {
+  display: block;
+  width: min(94%, 390px);
+  height: auto;
+  margin: 0 auto 34px;
+  object-fit: contain;
+}
+
+.loader-track {
+  width: 92px;
+  height: 4px;
+  margin: 0 auto 16px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(255,255,255,.12);
+}
+
+.loader-bar {
+  width: 42%;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--se-turquoise);
+  animation: seLoader 1.05s ease-in-out infinite;
+}
+
+.loader-text {
+  color: rgba(255,255,255,.72);
+  font-size: 12px;
+  font-weight: 650;
+}
+
+@keyframes seLoader {
+  0% { transform: translateX(-125%); }
+  50% { transform: translateX(85%); }
+  100% { transform: translateX(245%); }
+}
+
+@media (max-width: 420px) {
+  .loader-logo {
+    width: 94%;
+    max-width: 350px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .loader-bar { animation-duration: 2s; }
+  .page-loader { transition: none; }
+}
+
   </style>
   <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-messaging-compat.js"></script>
 </head>
 
 <body>
+  
+<div id="pageLoader" class="page-loader"
+     aria-label="Schijndel Events laden">
+  <div class="loader-content">
+    <img
+      id="loaderLogo"
+      class="loader-logo"
+      src="./loader-logo.png"
+      alt="Schijndel Events"
+    >
+    <div class="loader-track">
+      <div class="loader-bar"></div>
+    </div>
+    <div class="loader-text">
+      Schijndel Events | Hub wordt geladen...
+    </div>
+  </div>
+</div>
+
 
   <iframe
     id="hubFrame"
@@ -59,6 +162,17 @@
     "https://script.google.com/macros/s/AKfycbx273k5nju4DDNyr4L9yeoRcglSJko--56NQKtclqtK1wglo3kO7vokIJlorR_KU4HF0A/exec";
 
   const hubFrame = document.getElementById("hubFrame");
+  
+const pageLoader = document.getElementById("pageLoader");
+
+hubFrame.addEventListener("load", function() {
+  if (!pageLoader) return;
+
+  setTimeout(function() {
+    pageLoader.classList.add("loader-hide");
+  }, 350);
+});
+
 
   function maakScriptUrl(pagina, token) {
     const url = new URL(BASE_SCRIPT_URL);
