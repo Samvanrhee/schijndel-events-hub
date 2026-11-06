@@ -152,6 +152,7 @@ margin-top: -2px;
       font-size: clamp(13px,1.55vw,28px);
       line-height: 1.3;
       overflow-wrap: anywhere;
+      white-space: pre-line;
     }
 
     .tile .foot {
@@ -594,16 +595,21 @@ margin-top: -2px;
 
       previousMode = mode;
 
-      if (!activeEmergency && overlayUntil && Date.now() >= overlayUntil) {
-        $('overlay').style.display = 'none';
-        overlayUntil = 0;
-        nextEvent();
-      }
+      if (overlayUntil && Date.now() >= overlayUntil) {
+  const wasNoodmelding =
+    $('overlay').classList.contains('emergency');
 
-      if (activeEmergency) {
-        $('overlayCounter').textContent =
-          'Actieve noodmelding — wacht op afhandeling';
-      } else if (overlayUntil) {
+  $('overlay').style.display = 'none';
+  overlayUntil = 0;
+
+  if (wasNoodmelding) {
+    activeEmergency = false;
+  }
+
+  nextEvent();
+}
+
+      if (overlayUntil) {
         $('overlayCounter').textContent =
           'Terug naar dashboard over ' +
           Math.max(0, Math.ceil((overlayUntil - Date.now()) / 1000)) +
@@ -646,17 +652,23 @@ margin-top: -2px;
     }
 
     function nextEvent() {
-      if (!live || activeEmergency || !queue.length) return;
-      show(queue.shift());
-    }
+  if (!live || overlayUntil || !queue.length) return;
 
+  const item = queue.shift();
+
+  activeEmergency = item.emergency === true;
+
+  show(item);
+}
     function show(item) {
       $('overlay').className = item.emergency ? 'emergency' : '';
+      window.getoondeNoodmeldingId =
+  item.emergency ? item.id || null : null;
       $('overlayTag').textContent = item.tag;
       $('overlayTitle').textContent = item.title;
       $('overlayText').textContent = item.message;
       $('overlay').style.display = 'flex';
-      overlayUntil = item.emergency ? 0 : Date.now() + 60000;
+      overlayUntil = Date.now() + 60000;
     }
 
     function clearEmergency() {
@@ -742,33 +754,83 @@ window.beachDisplayStatusOntvangen = function(data) {
 if (Array.isArray(data.activeEmergencies)) {
   const meldingen = data.activeEmergencies;
   const actief = meldingen.length > 0;
+  const actieveIds = new Set(
+  meldingen.map(m => 'nood-' + m.id)
+);
+  if (
+  $('overlay').classList.contains('emergency') &&
+  $('overlay').style.display !== 'none' &&
+  window.getoondeNoodmeldingId &&
+  !actieveIds.has(window.getoondeNoodmeldingId)
+) {
+  $('overlay').style.display = 'none';
+  overlayUntil = 0;
+  activeEmergency = false;
+  window.getoondeNoodmeldingId = null;
+  nextEvent();
+}
+
+queue = queue.filter(item =>
+  !item.emergency ||
+  actieveIds.has(item.id)
+);
 
   if (actief) {
     const melding = meldingen[0];
 
     $('emergency').textContent =
-      meldingen.length + ' actieve noodmelding(en)';
+  meldingen.length === 1
+    ? '1 ACTIEVE NOODMELDING'
+    : meldingen.length + ' ACTIEVE NOODMELDINGEN';
 
-    $('emergencyDetail').textContent =
-      melding.locatie + ' · ' + melding.evenement;
+$('emergencyDetail').textContent =
+  meldingen.map(m => [
+    m.locatie || 'Locatie onbekend',
+    m.evenement || 'Evenement onbekend',
+    'Gemeld door ' + (m.melder || 'Onbekend') +
+      ' · ' + (m.tijdstip || '--:--'),
+    m.omschrijving || 'Hulp gevraagd'
+  ].join('\n')).join('\n\n');
 
-    const meldingId = 'nood-' + melding.id;
+    if (!window.aangekondigdeNoodmeldingen) {
+  window.aangekondigdeNoodmeldingen = new Set();
+}
 
-    if (window.huidigeNoodmelding !== meldingId) {
-      window.huidigeNoodmelding = meldingId;
+const nieuweMeldingen = meldingen
+  .filter(m => !window.aangekondigdeNoodmeldingen.has(String(m.id)))
+  .sort((a, b) => a.created - b.created);
 
-      announce(
-        meldingId,
-        'NOODMELDING',
-        melding.locatie || 'LOCATIE ONBEKEND',
-        melding.evenement || 'Assistentie gevraagd',
-        true
-      );
-    }
+nieuweMeldingen.forEach(melding => {
+  window.aangekondigdeNoodmeldingen.add(String(melding.id));
+
+  const meldingId = 'nood-' + melding.id;
+
+  const bericht = [
+    'Gemeld door ' + (melding.melder || 'Onbekend') +
+      ' · ' + (melding.tijdstip || '--:--'),
+    melding.omschrijving || 'Hulp gevraagd'
+  ].join('\n');
+
+  const aankondiging = {
+  id: meldingId,
+  tag: 'NOODMELDING · ' +
+      (melding.evenement || 'SCHIJNDEL AAN ZEE'),
+    title: melding.locatie || 'LOCATIE ONBEKEND',
+    message: bericht,
+    emergency: true
+  };
+
+  if (!$('overlay').classList.contains('emergency') ||
+      $('overlay').style.display === 'none') {
+    activeEmergency = true;
+    show(aankondiging);
+  } else {
+    queue.push(aankondiging);
+  }
+});
 
   } else {
-    window.huidigeNoodmelding = null;
-    activeEmergency = false;
+  window.aangekondigdeNoodmeldingen = new Set();
 
     $('emergency').textContent =
       'Geen actieve noodmeldingen';
