@@ -618,17 +618,23 @@ margin-top: -2px;
     }
 
     function setLive(on) {
-      live = on;
-      $('standby').style.display = on ? 'none' : 'flex';
+  const wasLive = live;
+  live = on;
 
-      if (!on && !activeEmergency) {
-        $('overlay').style.display = 'none';
-        overlayUntil = 0;
-        queue = [];
-      }
+  $('standby').style.display = on ? 'none' : 'flex';
 
-      if (on) tick();
-    }
+  if (!on) {
+    $('overlay').style.display = 'none';
+    overlayUntil = 0;
+    activeEmergency = false;
+    window.getoondeNoodmeldingId = null;
+    queue = [];
+  }
+
+  if (on && !wasLive) {
+    tick();
+  }
+}
 
     function announce(id, tag, title, message, emergency = false) {
   if (lastEventIds.has(id)) return;
