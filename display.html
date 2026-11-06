@@ -598,6 +598,41 @@
 
     setInterval(tick, 1000);
     tick();
+    
+/* Automatische LIVE/STAND-BY-koppeling met de Hub */
+
+const BEACH_DISPLAY_API =
+  'https://script.google.com/macros/s/AKfycbx273k5nju4DDNyr4L9yeoRcglSJko--56NQKtclqtK1wglo3kO7vokIJlorR_KU4HF0A/exec?display=1';
+
+window.beachDisplayStatusOntvangen = function(data) {
+  if (!data || typeof data.live !== 'boolean') return;
+  setLive(data.live);
+};
+
+function laadCentraleBeachDisplayStatus() {
+  const script = document.createElement('script');
+
+  script.src =
+    BEACH_DISPLAY_API +
+    '&callback=beachDisplayStatusOntvangen' +
+    '&_=' + Date.now();
+
+  script.onerror = function() {
+    console.warn('Beach Display: centrale status niet bereikbaar.');
+    script.remove();
+  };
+
+  script.onload = function() {
+    script.remove();
+  };
+
+  document.head.appendChild(script);
+}
+
+laadCentraleBeachDisplayStatus();
+
+setInterval(laadCentraleBeachDisplayStatus, 10000);
+
   </script>
 </body>
 </html>
