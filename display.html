@@ -519,9 +519,13 @@ margin-top: -2px;
   };
 
   $('mode').innerHTML =
-  mode.charAt(0) + mode.slice(1).toLowerCase() + ' Mode ' +
-    '<span class="mode-zap" style="color:' +
-    colors[mode] + '">⚡</span>';
+  mode + ' MODE ' +
+  '<svg class="mode-zap" viewBox="0 0 24 24" ' +
+  'width="36" height="36" ' +
+  'fill="' + colors[mode] + '" ' +
+  'xmlns="http://www.w3.org/2000/svg">' +
+  '<path d="M13 2L3 14h7l-1 8 12-13h-8l0-7z"/>' +
+  '</svg>';
 
   $('modeDo').innerHTML =
     config.do.map(item =>
