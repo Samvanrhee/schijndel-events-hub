@@ -1,6 +1,603 @@
-<!doctype html><html lang="nl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Schijndel Events | Beach Display</title><style>
-:root{--navy:#11111f;--cyan:#68d2df;--white:#fff;--muted:#aeb9c9}*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;background:var(--navy);color:white}body{background:radial-gradient(ellipse at 15% 0%,#213a48 0%,#11111f 48%)}#app{height:100dvh;padding:clamp(12px,2vh,28px) clamp(14px,2vw,38px);display:flex;flex-direction:column;gap:clamp(10px,1.6vh,20px)}header{display:flex;align-items:center;justify-content:space-between;min-height:clamp(42px,8vh,90px);gap:20px}.brand{display:flex;align-items:center;gap:16px;min-width:0}.brand img{width:clamp(130px,21vw,370px);max-height:9vh;object-fit:contain}.brand .fallback{font-size:clamp(17px,2.3vw,38px);font-weight:850;letter-spacing:.08em}.brand small{display:block;color:var(--cyan);font-size:clamp(9px,1vw,16px);letter-spacing:.23em;margin-top:4px}.status{display:flex;align-items:center;gap:12px;font-size:clamp(12px,1.4vw,21px);font-weight:800}.pill{background:#cf233d;border-radius:30px;padding:9px 16px;letter-spacing:.13em}.dot{display:inline-block;width:9px;height:9px;background:white;border-radius:50%;margin-right:8px;animation:pulse 1.6s infinite}@keyframes pulse{50%{opacity:.3}}#clock{font-variant-numeric:tabular-nums;color:#c6d5e1}main{flex:1;min-height:0;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:clamp(10px,1.4vw,22px)}.tile{min-height:0;overflow:hidden;border:1px solid #3a485d;border-radius:clamp(14px,1.6vw,28px);background:linear-gradient(145deg,#1e2c42,#151d30);padding:clamp(15px,2vw,36px);display:flex;flex-direction:column;gap:clamp(8px,1.2vh,18px)}.tile h2{margin:0;color:var(--cyan);font-size:clamp(12px,1.35vw,24px);letter-spacing:.1em;text-transform:uppercase}.tile .big{font-size:clamp(25px,3.2vw,65px);line-height:1.04;font-weight:850;overflow-wrap:anywhere}.tile .detail{color:#d4e1ea;font-size:clamp(13px,1.55vw,28px);line-height:1.3;overflow-wrap:anywhere}.tile .foot{margin-top:auto;color:var(--muted);font-size:clamp(11px,1.15vw,20px);line-height:1.3}.tile.mode{background:linear-gradient(140deg,#153b49,#152338)}.tile.alert{background:linear-gradient(140deg,#2b2639,#172034)}.tiny{font-size:clamp(10px,1vw,18px);color:#a6bdc9}#standby,#overlay{position:fixed;inset:0;z-index:10;display:flex;align-items:center;justify-content:center;flex-direction:column;text-align:center;padding:5vw;background:radial-gradient(circle at center,#203b49,#11111f 68%)}#standby h1{font-size:clamp(34px,6vw,100px);letter-spacing:.06em;margin:18px 0 0}#standby p{color:var(--cyan);font-size:clamp(15px,2vw,32px);letter-spacing:.25em}#standby img{width:min(65vw,850px);max-height:28vh;object-fit:contain}#overlay{z-index:20;display:none}#overlay h1{font-size:clamp(40px,7vw,130px);margin:12px 0;line-height:1.05}#overlay p{font-size:clamp(20px,2.7vw,48px);max-width:90vw;line-height:1.3;white-space:pre-line}#overlay .tag{font-size:clamp(14px,1.5vw,28px);letter-spacing:.2em;color:var(--cyan)}#overlay.emergency{background:radial-gradient(circle,#7b273b,#230f1c 75%)}#overlay.emergency .tag{color:#ffb7c4}#test{position:fixed;bottom:8px;right:8px;z-index:30;display:flex;gap:5px;opacity:.22;transition:opacity .2s}#test:hover,#test:focus-within{opacity:1}button{background:#29394d;color:white;border:1px solid #607084;border-radius:8px;padding:7px 9px;font-size:11px;cursor:pointer}#orientation{display:none}@media(orientation:portrait){#orientation{display:flex;position:fixed;inset:0;z-index:50;align-items:center;justify-content:center;text-align:center;padding:30px;background:#11111f;color:white;font-size:23px}}@media(max-height:480px){#app{gap:7px;padding:8px 14px}header{min-height:32px}.tile{padding:10px;gap:5px}.tile .big{font-size:clamp(19px,3vw,40px)}.tile .detail{font-size:clamp(11px,1.3vw,20px)}}
-</style></head><body><div id="app"><header><div class="brand"><img src="./loader-logo.png" alt="Schijndel Events" onerror="this.style.display='none';document.querySelector('.fallback').hidden=false"><div class="fallback" hidden>SCHIJNDEL EVENTS<small>BEACH DISPLAY</small></div></div><div class="status"><span class="pill"><span class="dot"></span>LIVE</span><span id="clock">--:--</span></div></header><main><section class="tile mode"><h2>◈ Beach Mode</h2><div class="big" id="mode">QUIET MODE</div><div class="detail" id="rules">Voorbereiden • Aanvullen • Pauzes in overleg</div><div class="foot" id="modeTime">17:00 – 20:30</div></section><section class="tile"><h2>♫ Artiesten</h2><div class="tiny">NU OP HET PODIUM</div><div class="big" id="artist">Programma nog niet gekoppeld</div><div class="detail" id="artistTime">—</div><div class="foot" id="nextArtist">Hierna: —</div></section><section class="tile"><h2>▤ Crew Updates</h2><div class="big" style="font-size:clamp(22px,2.6vw,52px)" id="update">Geen algemene Crew Update</div><div class="foot">Alleen berichten voor de volledige crew</div></section><section class="tile alert"><h2>⚠ Noodmeldingen</h2><div class="big" id="emergency">Geen actieve noodmeldingen</div><div class="detail" id="emergencyDetail">Laatste afhandeling: —</div><div class="foot">Noodmeldingen hebben altijd voorrang</div></section></main></div><div id="standby"><img src="./loader-logo.png" alt="Schijndel Events" onerror="this.style.display='none'"><h1>SCHIJNDEL EVENTS</h1><p>BEACH DISPLAY · STAND-BY</p><div class="tiny">Wachten op activering vanuit de Hub</div></div><div id="overlay"><div class="tag" id="overlayTag">BEACH DISPLAY</div><h1 id="overlayTitle"></h1><p id="overlayText"></p><div class="tiny" id="overlayCounter"></div></div><div id="orientation">Draai het scherm naar liggende stand om Beach Display te bekijken.</div><div id="test"><button onclick="setLive(false)">Stand-by</button><button onclick="setLive(true)">LIVE</button><button onclick="demo('mode')">Mode</button><button onclick="demo('artist')">Artiest</button><button onclick="demo('update')">Update</button><button onclick="demo('emergency')">Nood</button><button onclick="clearEmergency()">Afhandelen</button></div><script>
-/* Beach Display 2027 — zelfstandige landschaptest. Geen live spreadsheet- of Hub-koppeling. */
-const $=id=>document.getElementById(id);let live=false,manualMode=null,previousMode='',overlayUntil=0,activeEmergency=false,queue=[],lastEventIds=new Set();const rules={QUIET:['Voorbereiden • Aanvullen • Pauzes in overleg','17:00 – 20:30'],NORMAL:['Efficiënt werken • Pauzes gespreid • Posities bewaken','20:30 – 22:00'],PEAK:['Maximale doorstroom • Geen vrij ingeplande pauzes • Toilet/water mogelijk','22:00 – 00:30']};function amsterdamParts(){const parts=new Intl.DateTimeFormat('nl-NL',{timeZone:'Europe/Amsterdam',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).formatToParts(new Date());return {h:+parts.find(p=>p.type==='hour').value,m:+parts.find(p=>p.type==='minute').value}}function getMode(){if(manualMode)return manualMode;const {h,m}=amsterdamParts(),t=h*60+m;if(t>=17*60&&t<20*60+30)return 'QUIET';if(t>=20*60+30&&t<22*60)return 'NORMAL';if(t>=22*60||t<30)return 'PEAK';return 'QUIET'}function tick(){const {h,m}=amsterdamParts();$('clock').textContent=String(h).padStart(2,'0')+':'+String(m).padStart(2,'0');const mode=getMode();$('mode').textContent=mode+' MODE';$('rules').textContent=rules[mode][0];$('modeTime').textContent=rules[mode][1];if(previousMode&&previousMode!==mode&&live)announce('mode-'+mode+'-'+h+':'+m,'BEACH MODE',mode+' MODE',rules[mode][0]);previousMode=mode;if(!activeEmergency&&overlayUntil&&Date.now()>=overlayUntil){$('overlay').style.display='none';overlayUntil=0;nextEvent()}if(activeEmergency){$('overlayCounter').textContent='Actieve noodmelding — wacht op afhandeling'}else if(overlayUntil){$('overlayCounter').textContent='Terug naar dashboard over '+Math.max(0,Math.ceil((overlayUntil-Date.now())/1000))+' seconden'}}function setLive(on){live=on;$('standby').style.display=on?'none':'flex';if(!on&&!activeEmergency){$('overlay').style.display='none';overlayUntil=0;queue=[]}if(on)tick()}function announce(id,tag,title,message,emergency=false){if(lastEventIds.has(id))return;lastEventIds.add(id);const item={tag,title,message,emergency};if(emergency){activeEmergency=true;show(item);return}queue.push(item);if(live&&!overlayUntil&&!activeEmergency)nextEvent()}function nextEvent(){if(!live||activeEmergency||!queue.length)return;show(queue.shift())}function show(item){$('overlay').className=item.emergency?'emergency':'';$('overlayTag').textContent=item.tag;$('overlayTitle').textContent=item.title;$('overlayText').textContent=item.message;$('overlay').style.display='flex';overlayUntil=item.emergency?0:Date.now()+60000}function clearEmergency(){activeEmergency=false;$('emergency').textContent='Geen actieve noodmeldingen';$('emergencyDetail').textContent='Laatste afhandeling: zojuist (test)';$('overlay').style.display='none';overlayUntil=0;nextEvent()}function demo(type){setLive(true);const id=type+'-'+Date.now();if(type==='mode'){manualMode=getMode()==='PEAK'?'NORMAL':'PEAK';const mode=getMode();$('mode').textContent=mode+' MODE';announce(id,'BEACH MODE GEWIJZIGD',mode+' MODE',rules[mode][0])}if(type==='artist'){ $('artist').textContent='DJ EXAMPLE';$('artistTime').textContent='20:00 – 21:30';$('nextArtist').textContent='Hierna: THE BEACH BOYS · 21:30';announce(id,'NU OP HET PODIUM','DJ EXAMPLE','20:00 – 21:30')}if(type==='update'){$('update').textContent='Crew briefing bij Bar 1 om 21:30';announce(id,'CREW UPDATE','BELANGRIJKE UPDATE','Crew briefing bij Bar 1 om 21:30')}if(type==='emergency'){$('emergency').textContent='Actief · Bar 2';$('emergencyDetail').textContent='Assistentie gevraagd';announce(id,'NOODMELDING','BAR 2','Assistentie gevraagd · volg de veiligheidsprocedure',true)}}setInterval(tick,1000);tick();
-</script></body></html>
+
+<!doctype html>
+<html lang="nl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <title>Schijndel Events | Beach Display</title>
+
+  <style>
+    :root {
+      --navy: #11111f;
+      --cyan: #68d2df;
+      --white: #fff;
+      --muted: #aeb9c9;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html, body {
+      margin: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+      background: var(--navy);
+      color: white;
+    }
+
+    body {
+      background: radial-gradient(ellipse at 15% 0%, #213a48 0%, #11111f 48%);
+    }
+
+    #app {
+      height: 100dvh;
+      padding: clamp(12px,2vh,28px) clamp(14px,2vw,38px);
+      display: flex;
+      flex-direction: column;
+      gap: clamp(10px,1.6vh,20px);
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      min-height: clamp(42px,8vh,90px);
+      gap: 20px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      min-width: 0;
+    }
+
+    .brand img {
+      width: clamp(130px,21vw,370px);
+      max-height: 9vh;
+      object-fit: contain;
+    }
+
+    .brand .fallback {
+      font-size: clamp(17px,2.3vw,38px);
+      font-weight: 850;
+      letter-spacing: .08em;
+    }
+
+    .brand small {
+      display: block;
+      color: var(--cyan);
+      font-size: clamp(9px,1vw,16px);
+      letter-spacing: .23em;
+      margin-top: 4px;
+    }
+
+    .status {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: clamp(12px,1.4vw,21px);
+      font-weight: 800;
+    }
+
+    .pill {
+      background: #cf233d;
+      border-radius: 30px;
+      padding: 9px 16px;
+      letter-spacing: .13em;
+    }
+
+    .dot {
+      display: inline-block;
+      width: 9px;
+      height: 9px;
+      background: white;
+      border-radius: 50%;
+      margin-right: 8px;
+      animation: pulse 1.6s infinite;
+    }
+
+    @keyframes pulse {
+      50% { opacity: .3; }
+    }
+
+    #clock {
+      font-variant-numeric: tabular-nums;
+      color: #c6d5e1;
+    }
+
+    main {
+      flex: 1;
+      min-height: 0;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      grid-template-rows: 1fr 1fr;
+      gap: clamp(10px,1.4vw,22px);
+    }
+
+    .tile {
+      min-height: 0;
+      overflow: hidden;
+      border: 1px solid #3a485d;
+      border-radius: clamp(14px,1.6vw,28px);
+      background: linear-gradient(145deg,#1e2c42,#151d30);
+      padding: clamp(15px,2vw,36px);
+      display: flex;
+      flex-direction: column;
+      gap: clamp(8px,1.2vh,18px);
+    }
+
+    .tile h2 {
+      margin: 0;
+      color: var(--cyan);
+      font-size: clamp(12px,1.35vw,24px);
+      letter-spacing: .1em;
+      text-transform: uppercase;
+    }
+
+    .tile .big {
+      font-size: clamp(25px,3.2vw,65px);
+      line-height: 1.04;
+      font-weight: 850;
+      overflow-wrap: anywhere;
+    }
+
+    .tile .detail {
+      color: #d4e1ea;
+      font-size: clamp(13px,1.55vw,28px);
+      line-height: 1.3;
+      overflow-wrap: anywhere;
+    }
+
+    .tile .foot {
+      margin-top: auto;
+      color: var(--muted);
+      font-size: clamp(11px,1.15vw,20px);
+      line-height: 1.3;
+    }
+
+    .tile.mode {
+      background: linear-gradient(140deg,#153b49,#152338);
+    }
+
+    .tile.alert {
+      background: linear-gradient(140deg,#2b2639,#172034);
+    }
+
+    .tiny {
+      font-size: clamp(10px,1vw,18px);
+      color: #a6bdc9;
+    }
+
+    #standby, #overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      text-align: center;
+      padding: 5vw;
+      background: radial-gradient(circle at center,#203b49,#11111f 68%);
+    }
+
+    #standby h1 {
+      font-size: clamp(34px,6vw,100px);
+      letter-spacing: .06em;
+      margin: 18px 0 0;
+    }
+
+    #standby p {
+      color: var(--cyan);
+      font-size: clamp(15px,2vw,32px);
+      letter-spacing: .25em;
+    }
+
+    #standby img {
+      width: min(65vw,850px);
+      max-height: 28vh;
+      object-fit: contain;
+    }
+
+    #overlay {
+      z-index: 20;
+      display: none;
+    }
+
+    #overlay h1 {
+      font-size: clamp(40px,7vw,130px);
+      margin: 12px 0;
+      line-height: 1.05;
+    }
+
+    #overlay p {
+      font-size: clamp(20px,2.7vw,48px);
+      max-width: 90vw;
+      line-height: 1.3;
+      white-space: pre-line;
+    }
+
+    #overlay .tag {
+      font-size: clamp(14px,1.5vw,28px);
+      letter-spacing: .2em;
+      color: var(--cyan);
+    }
+
+    #overlay.emergency {
+      background: radial-gradient(circle,#7b273b,#230f1c 75%);
+    }
+
+    #overlay.emergency .tag {
+      color: #ffb7c4;
+    }
+
+    #test {
+      position: fixed;
+      bottom: 8px;
+      right: 8px;
+      z-index: 30;
+      display: flex;
+      gap: 5px;
+      opacity: .22;
+      transition: opacity .2s;
+    }
+
+    #test:hover, #test:focus-within {
+      opacity: 1;
+    }
+
+    button {
+      background: #29394d;
+      color: white;
+      border: 1px solid #607084;
+      border-radius: 8px;
+      padding: 7px 9px;
+      font-size: 11px;
+      cursor: pointer;
+    }
+
+    #orientation {
+      display: none;
+    }
+
+    @media (orientation: portrait) {
+      #orientation {
+        display: flex;
+        position: fixed;
+        inset: 0;
+        z-index: 50;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: 30px;
+        background: #11111f;
+        color: white;
+        font-size: 23px;
+      }
+    }
+
+    @media (max-height: 480px) {
+      #app { gap: 7px; padding: 8px 14px; }
+      header { min-height: 32px; }
+      .tile { padding: 10px; gap: 5px; }
+      .tile .big { font-size: clamp(19px,3vw,40px); }
+      .tile .detail { font-size: clamp(11px,1.3vw,20px); }
+    }
+  </style>
+</head>
+
+<body>
+  <div id="app">
+    <header>
+      <div class="brand">
+        <img
+          src="./loader-logo.png"
+          alt="Schijndel Events"
+          onerror="this.style.display='none';document.querySelector('.fallback').hidden=false"
+        >
+        <div class="fallback" hidden>
+          SCHIJNDEL EVENTS
+          <small>BEACH DISPLAY</small>
+        </div>
+      </div>
+
+      <div class="status">
+        <span class="pill"><span class="dot"></span>LIVE</span>
+        <span id="clock">--:--</span>
+      </div>
+    </header>
+
+    <main>
+      <section class="tile mode">
+        <h2>◈ Beach Mode</h2>
+        <div class="big" id="mode">QUIET MODE</div>
+        <div class="detail" id="rules">
+          Voorbereiden • Aanvullen • Pauzes in overleg
+        </div>
+        <div class="foot" id="modeTime">17:00 – 20:30</div>
+      </section>
+
+      <section class="tile">
+        <h2>♫ Artiesten</h2>
+        <div class="tiny">NU OP HET PODIUM</div>
+        <div class="big" id="artist">Programma nog niet gekoppeld</div>
+        <div class="detail" id="artistTime">—</div>
+        <div class="foot" id="nextArtist">Hierna: —</div>
+      </section>
+
+      <section class="tile">
+        <h2>▤ Crew Updates</h2>
+        <div
+          class="big"
+          style="font-size:clamp(22px,2.6vw,52px)"
+          id="update"
+        >
+          Geen algemene Crew Update
+        </div>
+        <div class="foot">Alleen berichten voor de volledige crew</div>
+      </section>
+
+      <section class="tile alert">
+        <h2>⚠ Noodmeldingen</h2>
+        <div class="big" id="emergency">Geen actieve noodmeldingen</div>
+        <div class="detail" id="emergencyDetail">
+          Laatste afhandeling: —
+        </div>
+        <div class="foot">Noodmeldingen hebben altijd voorrang</div>
+      </section>
+    </main>
+  </div>
+
+  <div id="standby">
+    <img
+      src="./loader-logo.png"
+      alt="Schijndel Events"
+      onerror="this.style.display='none'"
+    >
+    <h1>SCHIJNDEL EVENTS</h1>
+    <p>BEACH DISPLAY · STAND-BY</p>
+    <div class="tiny">Wachten op activering vanuit de Hub</div>
+  </div>
+
+  <div id="overlay">
+    <div class="tag" id="overlayTag">BEACH DISPLAY</div>
+    <h1 id="overlayTitle"></h1>
+    <p id="overlayText"></p>
+    <div class="tiny" id="overlayCounter"></div>
+  </div>
+
+  <div id="orientation">
+    Draai het scherm naar liggende stand om Beach Display te bekijken.
+  </div>
+
+  <div id="test">
+    <button onclick="setLive(false)">Stand-by</button>
+    <button onclick="setLive(true)">LIVE</button>
+    <button onclick="demo('mode')">Mode</button>
+    <button onclick="demo('artist')">Artiest</button>
+    <button onclick="demo('update')">Update</button>
+    <button onclick="demo('emergency')">Nood</button>
+    <button onclick="clearEmergency()">Afhandelen</button>
+  </div>
+
+  <script>
+    /* Beach Display 2027 — zelfstandige landschaptest.
+       Geen live spreadsheet- of Hub-koppeling. */
+
+    const $ = id => document.getElementById(id);
+
+    let live = false;
+    let manualMode = null;
+    let previousMode = '';
+    let overlayUntil = 0;
+    let activeEmergency = false;
+    let queue = [];
+    let lastEventIds = new Set();
+
+    const rules = {
+      QUIET: [
+        'Voorbereiden • Aanvullen • Pauzes in overleg',
+        '17:00 – 20:30'
+      ],
+      NORMAL: [
+        'Efficiënt werken • Pauzes gespreid • Posities bewaken',
+        '20:30 – 22:00'
+      ],
+      PEAK: [
+        'Maximale doorstroom • Geen vrij ingeplande pauzes • Toilet/water mogelijk',
+        '22:00 – 00:30'
+      ]
+    };
+
+    function amsterdamParts() {
+      const parts = new Intl.DateTimeFormat('nl-NL', {
+        timeZone: 'Europe/Amsterdam',
+        hour: '2-digit',
+        minute: '2-digit',
+        hourCycle: 'h23'
+      }).formatToParts(new Date());
+
+      return {
+        h: +parts.find(p => p.type === 'hour').value,
+        m: +parts.find(p => p.type === 'minute').value
+      };
+    }
+
+    function getMode() {
+      if (manualMode) return manualMode;
+
+      const { h, m } = amsterdamParts();
+      const t = h * 60 + m;
+
+      if (t >= 17 * 60 && t < 20 * 60 + 30) return 'QUIET';
+      if (t >= 20 * 60 + 30 && t < 22 * 60) return 'NORMAL';
+      if (t >= 22 * 60 || t < 30) return 'PEAK';
+
+      return 'QUIET';
+    }
+
+    function tick() {
+      const { h, m } = amsterdamParts();
+
+      $('clock').textContent =
+        String(h).padStart(2, '0') + ':' +
+        String(m).padStart(2, '0');
+
+      const mode = getMode();
+
+      $('mode').textContent = mode + ' MODE';
+      $('rules').textContent = rules[mode][0];
+      $('modeTime').textContent = rules[mode][1];
+
+      if (previousMode && previousMode !== mode && live) {
+        announce(
+          'mode-' + mode + '-' + h + ':' + m,
+          'BEACH MODE',
+          mode + ' MODE',
+          rules[mode][0]
+        );
+      }
+
+      previousMode = mode;
+
+      if (!activeEmergency && overlayUntil && Date.now() >= overlayUntil) {
+        $('overlay').style.display = 'none';
+        overlayUntil = 0;
+        nextEvent();
+      }
+
+      if (activeEmergency) {
+        $('overlayCounter').textContent =
+          'Actieve noodmelding — wacht op afhandeling';
+      } else if (overlayUntil) {
+        $('overlayCounter').textContent =
+          'Terug naar dashboard over ' +
+          Math.max(0, Math.ceil((overlayUntil - Date.now()) / 1000)) +
+          ' seconden';
+      }
+    }
+
+    function setLive(on) {
+      live = on;
+      $('standby').style.display = on ? 'none' : 'flex';
+
+      if (!on && !activeEmergency) {
+        $('overlay').style.display = 'none';
+        overlayUntil = 0;
+        queue = [];
+      }
+
+      if (on) tick();
+    }
+
+    function announce(id, tag, title, message, emergency = false) {
+      if (lastEventIds.has(id)) return;
+
+      lastEventIds.add(id);
+
+      const item = { tag, title, message, emergency };
+
+      if (emergency) {
+        activeEmergency = true;
+        show(item);
+        return;
+      }
+
+      queue.push(item);
+
+      if (live && !overlayUntil && !activeEmergency) {
+        nextEvent();
+      }
+    }
+
+    function nextEvent() {
+      if (!live || activeEmergency || !queue.length) return;
+      show(queue.shift());
+    }
+
+    function show(item) {
+      $('overlay').className = item.emergency ? 'emergency' : '';
+      $('overlayTag').textContent = item.tag;
+      $('overlayTitle').textContent = item.title;
+      $('overlayText').textContent = item.message;
+      $('overlay').style.display = 'flex';
+      overlayUntil = item.emergency ? 0 : Date.now() + 60000;
+    }
+
+    function clearEmergency() {
+      activeEmergency = false;
+      $('emergency').textContent = 'Geen actieve noodmeldingen';
+      $('emergencyDetail').textContent =
+        'Laatste afhandeling: zojuist (test)';
+      $('overlay').style.display = 'none';
+      overlayUntil = 0;
+      nextEvent();
+    }
+
+    function demo(type) {
+      setLive(true);
+
+      const id = type + '-' + Date.now();
+
+      if (type === 'mode') {
+        manualMode = getMode() === 'PEAK' ? 'NORMAL' : 'PEAK';
+        const mode = getMode();
+        $('mode').textContent = mode + ' MODE';
+
+        announce(
+          id,
+          'BEACH MODE GEWIJZIGD',
+          mode + ' MODE',
+          rules[mode][0]
+        );
+      }
+
+      if (type === 'artist') {
+        $('artist').textContent = 'DJ EXAMPLE';
+        $('artistTime').textContent = '20:00 – 21:30';
+        $('nextArtist').textContent =
+          'Hierna: THE BEACH BOYS · 21:30';
+
+        announce(
+          id,
+          'NU OP HET PODIUM',
+          'DJ EXAMPLE',
+          '20:00 – 21:30'
+        );
+      }
+
+      if (type === 'update') {
+        $('update').textContent =
+          'Crew briefing bij Bar 1 om 21:30';
+
+        announce(
+          id,
+          'CREW UPDATE',
+          'BELANGRIJKE UPDATE',
+          'Crew briefing bij Bar 1 om 21:30'
+        );
+      }
+
+      if (type === 'emergency') {
+        $('emergency').textContent = 'Actief · Bar 2';
+        $('emergencyDetail').textContent = 'Assistentie gevraagd';
+
+        announce(
+          id,
+          'NOODMELDING',
+          'BAR 2',
+          'Assistentie gevraagd · volg de veiligheidsprocedure',
+          true
+        );
+      }
+    }
+
+    setInterval(tick, 1000);
+    tick();
+  </script>
+</body>
+</html>
