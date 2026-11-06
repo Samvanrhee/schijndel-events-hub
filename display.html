@@ -393,7 +393,7 @@ margin-top: -2px;
       <section class="tile">
         <h2>♫ Artiesten</h2>
         <div class="big" id="artist">Programma nog niet gekoppeld</div>
-<div class="detail">NU OP HET PODIUM</div>
+<div class="detail">Nu op het podium</div>
         <div class="detail" id="artistTime">—</div>
         <div class="foot" id="nextArtist">Hierna: —</div>
       </section>
@@ -519,7 +519,7 @@ margin-top: -2px;
   };
 
   $('mode').innerHTML =
-    mode + ' MODE ' +
+  mode.charAt(0) + mode.slice(1).toLowerCase() + ' Mode ' +
     '<span class="mode-zap" style="color:' +
     colors[mode] + '">⚡</span>';
 
