@@ -666,6 +666,18 @@ const current = program.find(act =>
   act.startMoment <= huidigeMinuut &&
   act.eindMoment > huidigeMinuut
 );
+  if (current && live) {
+  const aankondigingId =
+    'artist-' + current.date + '-' +
+    current.start + '-' + current.artist;
+
+  announce(
+    aankondigingId,
+    'NU OP HET PODIUM',
+    current.artist,
+    current.start + ' – ' + current.end
+  );
+}
 
 const next = program.find(act =>
   act.startMoment > huidigeMinuut
