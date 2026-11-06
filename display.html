@@ -631,30 +631,71 @@ margin-top: -2px;
     }
 
     function announce(id, tag, title, message, emergency = false) {
-      if (activeEmergency && !emergency) return;
-      if (lastEventIds.has(id)) return;
+  if (lastEventIds.has(id)) return;
 
-      lastEventIds.add(id);
+  lastEventIds.add(id);
 
-      const item = { tag, title, message, emergency };
+  const item = {
+    id,
+    tag,
+    title,
+    message,
+    emergency
+  };
 
-      if (emergency) {
+  if (emergency) {
+    const huidigeAankondigingActief =
+      $('overlay').style.display === 'flex' &&
+      overlayUntil > Date.now();
+
+    if (huidigeAankondigingActief) {
+      if (activeEmergency) {
+        // Nieuwe noodmelding achter bestaande noodmeldingen
+        const eersteNormale = queue.findIndex(
+          q => !q.emergency
+        );
+
+        if (eersteNormale === -1) {
+          queue.push(item);
+        } else {
+          queue.splice(eersteNormale, 0, item);
+        }
+      } else {
+        // Bewaar de onderbroken normale aankondiging
+        queue.push({
+          id: 'hervat-' + id,
+          tag: $('overlayTag').textContent,
+          title: $('overlayTitle').textContent,
+          message: $('overlayText').textContent,
+          emergency: false
+        });
+
         activeEmergency = true;
         show(item);
-        return;
       }
-
-      queue.push(item);
-
-      if (live && !overlayUntil && !activeEmergency) {
-        nextEvent();
-      }
+    } else {
+      activeEmergency = true;
+      show(item);
     }
+
+    return;
+  }
+
+  queue.push(item);
+
+  if (live && !overlayUntil && !activeEmergency) {
+    nextEvent();
+  }
+}
 
     function nextEvent() {
   if (!live || overlayUntil || !queue.length) return;
 
-  const item = queue.shift();
+  const noodIndex = queue.findIndex(item => item.emergency);
+
+  const item = noodIndex >= 0
+    ? queue.splice(noodIndex, 1)[0]
+    : queue.shift();
 
   activeEmergency = item.emergency === true;
 
@@ -757,7 +798,14 @@ if (Array.isArray(data.activeEmergencies)) {
   const actieveIds = new Set(
   meldingen.map(m => 'nood-' + m.id)
 );
-  if (
+  // Eerst afgehandelde noodmeldingen uit de wachtrij verwijderen
+queue = queue.filter(item =>
+  !item.emergency ||
+  actieveIds.has(item.id)
+);
+
+// Daarna controleren of de zichtbare noodmelding is afgehandeld
+if (
   $('overlay').classList.contains('emergency') &&
   $('overlay').style.display !== 'none' &&
   window.getoondeNoodmeldingId &&
@@ -769,11 +817,6 @@ if (Array.isArray(data.activeEmergencies)) {
   window.getoondeNoodmeldingId = null;
   nextEvent();
 }
-
-queue = queue.filter(item =>
-  !item.emergency ||
-  actieveIds.has(item.id)
-);
 
   if (actief) {
     const melding = meldingen[0];
@@ -820,17 +863,16 @@ nieuweMeldingen.forEach(melding => {
     emergency: true
   };
 
-  if (!$('overlay').classList.contains('emergency') ||
-      $('overlay').style.display === 'none') {
-    activeEmergency = true;
-    show(aankondiging);
-  } else {
-    queue.push(aankondiging);
-  }
+  announce(
+  meldingId,
+  aankondiging.tag,
+  aankondiging.title,
+  aankondiging.message,
+  true
+);
 });
 
   } else {
-  window.aangekondigdeNoodmeldingen = new Set();
 
     $('emergency').textContent =
       'Geen actieve noodmeldingen';
@@ -841,11 +883,16 @@ nieuweMeldingen.forEach(melding => {
           (data.lastHandledEmergency.locatie || 'Onbekend')
         : 'Laatste afhandeling: —';
 
-    if ($('overlay').classList.contains('emergency')) {
-      $('overlay').style.display = 'none';
-      overlayUntil = 0;
-      nextEvent();
-    }
+    if (
+  $('overlay').classList.contains('emergency') &&
+  $('overlay').style.display !== 'none'
+) {
+  $('overlay').style.display = 'none';
+  overlayUntil = 0;
+  activeEmergency = false;
+  window.getoondeNoodmeldingId = null;
+  nextEvent();
+}
   }
 }
   // Automatische Crew Updates
