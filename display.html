@@ -494,6 +494,7 @@
     }
 
     function announce(id, tag, title, message, emergency = false) {
+      if (activeEmergency && !emergency) return;
       if (lastEventIds.has(id)) return;
 
       lastEventIds.add(id);
@@ -607,6 +608,54 @@ window.beachDisplayStatusOntvangen = function(data) {
   if (!data || typeof data.live !== 'boolean') return;
 
   setLive(data.live);
+  // Automatische noodmeldingen
+if (Array.isArray(data.activeEmergencies)) {
+  const meldingen = data.activeEmergencies;
+  const actief = meldingen.length > 0;
+
+  if (actief) {
+    const melding = meldingen[0];
+
+    $('emergency').textContent =
+      meldingen.length + ' actieve noodmelding(en)';
+
+    $('emergencyDetail').textContent =
+      melding.locatie + ' · ' + melding.evenement;
+
+    const meldingId = 'nood-' + melding.id;
+
+    if (window.huidigeNoodmelding !== meldingId) {
+      window.huidigeNoodmelding = meldingId;
+
+      announce(
+        meldingId,
+        'NOODMELDING',
+        melding.locatie || 'LOCATIE ONBEKEND',
+        melding.evenement || 'Assistentie gevraagd',
+        true
+      );
+    }
+
+  } else {
+    window.huidigeNoodmelding = null;
+    activeEmergency = false;
+
+    $('emergency').textContent =
+      'Geen actieve noodmeldingen';
+
+    $('emergencyDetail').textContent =
+      data.lastHandledEmergency
+        ? 'Laatste afhandeling: ' +
+          (data.lastHandledEmergency.locatie || 'Onbekend')
+        : 'Laatste afhandeling: —';
+
+    if ($('overlay').classList.contains('emergency')) {
+      $('overlay').style.display = 'none';
+      overlayUntil = 0;
+      nextEvent();
+    }
+  }
+}
   // Automatische Crew Updates
 if (typeof data.crewUpdate === 'string') {
   const update = data.crewUpdate.trim();
