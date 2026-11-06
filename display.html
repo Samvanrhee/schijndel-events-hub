@@ -468,6 +468,7 @@ margin-top: -2px;
     let activeEmergency = false;
     let queue = [];
     let lastEventIds = new Set();
+    let volgendeAankondigingOm = 0;
 
     const rules = {
   QUIET: {
@@ -603,12 +604,28 @@ margin-top: -2px;
   overlayUntil = 0;
 
   if (wasNoodmelding) {
-    activeEmergency = false;
-  }
-
-  nextEvent();
+  activeEmergency = false;
+  window.getoondeNoodmeldingId = null;
 }
 
+// Noodmeldingen krijgen direct voorrang
+if (queue.some(item => item.emergency)) {
+  nextEvent();
+} else if (queue.length > 0) {
+  // Normale aankondigingen volgen na 5 seconden dashboard
+  volgendeAankondigingOm = Date.now() + 5000;
+}
+}
+// Normale aankondigingen na de pauze hervatten
+if (
+  live &&
+  !overlayUntil &&
+  volgendeAankondigingOm &&
+  Date.now() >= volgendeAankondigingOm
+) {
+  volgendeAankondigingOm = 0;
+  nextEvent();
+}
       if (overlayUntil) {
         $('overlayCounter').textContent =
           'Terug naar dashboard over ' +
@@ -629,6 +646,7 @@ margin-top: -2px;
     activeEmergency = false;
     window.getoondeNoodmeldingId = null;
     queue = [];
+    volgendeAankondigingOm = 0;
   }
 
   if (on && !wasLive) {
@@ -689,9 +707,14 @@ margin-top: -2px;
 
   queue.push(item);
 
-  if (live && !overlayUntil && !activeEmergency) {
-    nextEvent();
-  }
+  if (
+  live &&
+  !overlayUntil &&
+  !activeEmergency &&
+  !volgendeAankondigingOm
+) {
+  nextEvent();
+}
 }
 
     function nextEvent() {
