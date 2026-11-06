@@ -608,6 +608,39 @@ window.beachDisplayStatusOntvangen = function(data) {
   if (!data || typeof data.live !== 'boolean') return;
 
   setLive(data.live);
+  // Automatische Crew Updates
+if (typeof data.crewUpdate === 'string') {
+  const update = data.crewUpdate.trim();
+
+  $('update').textContent =
+    update || 'Geen algemene Crew Update';
+
+  if (window.vorigeCrewUpdate === undefined) {
+    window.vorigeCrewUpdate = update;
+
+    // Ook bij het openen een bestaande update aankondigen
+    if (update && live) {
+      announce(
+        'crew-update-start-' + Date.now(),
+        'CREW UPDATE',
+        'BELANGRIJKE UPDATE',
+        update
+      );
+    }
+
+  } else if (update !== window.vorigeCrewUpdate) {
+    window.vorigeCrewUpdate = update;
+
+    if (update && live) {
+      announce(
+        'crew-update-' + Date.now(),
+        'CREW UPDATE',
+        'BELANGRIJKE UPDATE',
+        update
+      );
+    }
+  }
+}
 
   if (!Array.isArray(data.program)) return;
 
