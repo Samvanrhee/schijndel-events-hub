@@ -606,7 +606,82 @@ const BEACH_DISPLAY_API =
 
 window.beachDisplayStatusOntvangen = function(data) {
   if (!data || typeof data.live !== 'boolean') return;
+
   setLive(data.live);
+
+  if (!Array.isArray(data.program)) return;
+
+  const now = new Date();
+  const today = new Intl.DateTimeFormat('sv-SE', {
+    timeZone: 'Europe/Amsterdam',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit'
+  }).format(now);
+
+  const clock = new Intl.DateTimeFormat('nl-NL', {
+    timeZone: 'Europe/Amsterdam',
+    hour: '2-digit',
+    minute: '2-digit',
+    hourCycle: 'h23'
+  }).format(now);
+
+  const datumTijd = new Intl.DateTimeFormat('sv-SE', {
+  timeZone: 'Europe/Amsterdam',
+  year: 'numeric',
+  month: '2-digit',
+  day: '2-digit',
+  hour: '2-digit',
+  minute: '2-digit',
+  hourCycle: 'h23'
+}).formatToParts(now);
+
+const deel = type =>
+  datumTijd.find(p => p.type === type).value;
+
+const huidigeMinuut = Date.UTC(
+  Number(deel('year')),
+  Number(deel('month')) - 1,
+  Number(deel('day')),
+  Number(deel('hour')),
+  Number(deel('minute'))
+);
+
+const program = data.program.map(act => {
+  const [jaar, maand, dag] = act.date.split('-').map(Number);
+  const [startUur, startMinuut] = act.start.split(':').map(Number);
+  const [eindUur, eindMinuut] = act.end.split(':').map(Number);
+
+  const start = Date.UTC(jaar, maand - 1, dag, startUur, startMinuut);
+  let einde = Date.UTC(jaar, maand - 1, dag, eindUur, eindMinuut);
+
+  if (einde <= start) {
+    einde += 24 * 60 * 60 * 1000;
+  }
+
+  return { ...act, startMoment: start, eindMoment: einde };
+}).sort((a, b) => a.startMoment - b.startMoment);
+
+const current = program.find(act =>
+  act.startMoment <= huidigeMinuut &&
+  act.eindMoment > huidigeMinuut
+);
+
+const next = program.find(act =>
+  act.startMoment > huidigeMinuut
+);
+
+$('artist').textContent = current
+  ? current.artist
+  : 'Geen artiest op dit moment';
+
+$('artistTime').textContent = current
+  ? current.start + ' – ' + current.end
+  : '—';
+
+$('nextArtist').textContent = next
+  ? 'Hierna: ' + next.artist + ' · ' + next.start
+  : 'Geen volgende artiest';
 };
 
 function laadCentraleBeachDisplayStatus() {
