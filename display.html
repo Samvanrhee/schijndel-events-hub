@@ -164,6 +164,62 @@ margin-top: -2px;
     .tile.mode {
       background: linear-gradient(140deg,#153b49,#152338);
     }
+    /* BEACH MODES 2027 */
+
+.mode-columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: clamp(10px, 1.2vw, 20px);
+  flex: 1;
+  min-height: 0;
+}
+
+.mode-column {
+  background: rgba(255,255,255,0.05);
+  border-radius: 12px;
+  padding: clamp(10px, 1vw, 18px);
+  font-size: clamp(12px, 1.25vw, 22px);
+  line-height: 1.5;
+}
+
+.mode-column-title {
+  font-weight: 850;
+  margin-bottom: 10px;
+  font-size: clamp(12px, 1.2vw, 21px);
+}
+
+.mode-yes {
+  color: #22c55e;
+}
+
+.mode-no {
+  color: #ef4444;
+}
+
+.mode-item {
+  margin-bottom: 6px;
+}
+
+/* Gekleurde bliksemschicht achter witte modenaam */
+
+.mode-zap {
+  display: inline-block;
+  margin-left: 10px;
+  vertical-align: middle;
+  font-size: 0.85em;
+}
+
+.mode-zap.quiet {
+  color: #22c55e;
+}
+
+.mode-zap.normal {
+  color: #f59e0b;
+}
+
+.mode-zap.peak {
+  color: #ef4444;
+}
 
     .tile.alert {
       background: linear-gradient(140deg,#2b2639,#172034);
@@ -314,13 +370,25 @@ margin-top: -2px;
 
     <main>
       <section class="tile mode">
-        <h2>◈ Beach Mode</h2>
-        <div class="big" id="mode">QUIET MODE</div>
-        <div class="detail" id="rules">
-          Voorbereiden • Aanvullen • Pauzes in overleg
-        </div>
-        <div class="foot" id="modeTime">17:00 – 20:30</div>
-      </section>
+  <h2>◈ Beach Mode</h2>
+
+  <div class="big" id="mode">QUIET MODE</div>
+
+  <div class="mode-columns">
+    <div class="mode-column">
+      <div class="mode-column-title mode-yes">✓ WEL DOEN</div>
+      <div id="modeDo"></div>
+    </div>
+
+    <div class="mode-column">
+      <div class="mode-column-title mode-no">✕ NIET DOEN</div>
+      <div id="modeDont"></div>
+    </div>
+  </div>
+
+  <div class="foot" id="modeTime">17:00 – 20:30</div>
+  <div id="rules" hidden></div>
+</section>
 
       <section class="tile">
         <h2>♫ Artiesten</h2>
@@ -399,19 +467,77 @@ margin-top: -2px;
     let lastEventIds = new Set();
 
     const rules = {
-      QUIET: [
-        'Voorbereiden • Aanvullen • Pauzes in overleg',
-        '17:00 – 20:30'
-      ],
-      NORMAL: [
-        'Efficiënt werken • Pauzes gespreid • Posities bewaken',
-        '20:30 – 22:00'
-      ],
-      PEAK: [
-        'Maximale doorstroom • Geen vrij ingeplande pauzes • Toilet/water mogelijk',
-        '22:00 – 00:30'
-      ]
-    };
+  QUIET: {
+    time: '17:00 – 20:30',
+    do: [
+      'Voorraad aanvullen',
+      'Werkplek voorbereiden',
+      'Pauzes in overleg'
+    ],
+    dont: [
+      'Werkplek onbeheerd laten',
+      'Zonder overleg wisselen',
+      'Voorraad laten opraken'
+    ]
+  },
+
+  NORMAL: {
+    time: '20:30 – 22:00',
+    do: [
+      'Posities bewaken',
+      'Efficiënt doorwerken',
+      'Pauzes gespreid houden'
+    ],
+    dont: [
+      'Onnodig van positie wisselen',
+      'Ongeplande pauzes',
+      'Werkzaamheden laten liggen'
+    ]
+  },
+
+  PEAK: {
+    time: '22:00 – 00:30',
+    do: [
+      'Maximale doorstroom',
+      'Vaste werkposities',
+      'Tekorten direct melden'
+    ],
+    dont: [
+      'Zelfstandig van positie wisselen',
+      'Niet-urgente werkzaamheden',
+      'Pauzes zonder afstemming'
+    ]
+  }
+};
+    function renderBeachMode(mode) {
+  const config = rules[mode];
+
+  const colors = {
+    QUIET: '#22c55e',
+    NORMAL: '#f59e0b',
+    PEAK: '#ef4444'
+  };
+
+  $('mode').innerHTML =
+    mode + ' MODE ' +
+    '<span class="mode-zap" style="color:' +
+    colors[mode] + '">⚡</span>';
+
+  $('modeDo').innerHTML =
+    config.do.map(item =>
+      '<div class="mode-item">✓ ' + item + '</div>'
+    ).join('');
+
+  $('modeDont').innerHTML =
+    config.dont.map(item =>
+      '<div class="mode-item">✕ ' + item + '</div>'
+    ).join('');
+
+  $('modeTime').textContent = config.time;
+
+  $('rules').textContent =
+    config.do.join(' • ');
+}
 
     function amsterdamParts() {
       const parts = new Intl.DateTimeFormat('nl-NL', {
@@ -449,16 +575,14 @@ margin-top: -2px;
 
       const mode = getMode();
 
-      $('mode').textContent = mode + ' MODE';
-      $('rules').textContent = rules[mode][0];
-      $('modeTime').textContent = rules[mode][1];
+      renderBeachMode(mode);
 
       if (previousMode && previousMode !== mode && live) {
         announce(
           'mode-' + mode + '-' + h + ':' + m,
           'BEACH MODE',
           mode + ' MODE',
-          rules[mode][0]
+          rules[mode].do.join(' • ')
         );
       }
 
@@ -547,13 +671,12 @@ margin-top: -2px;
       if (type === 'mode') {
         manualMode = getMode() === 'PEAK' ? 'NORMAL' : 'PEAK';
         const mode = getMode();
-        $('mode').textContent = mode + ' MODE';
 
         announce(
           id,
           'BEACH MODE GEWIJZIGD',
           mode + ' MODE',
-          rules[mode][0]
+          rules[mode].do.join(' • ')
         );
       }
 
