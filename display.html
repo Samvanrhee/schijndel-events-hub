@@ -74,7 +74,26 @@
       letter-spacing: .23em;
       margin-top: 4px;
     }
+.opening-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #ef4444;
+  font-weight: 800;
+  white-space: nowrap;
+}
 
+.opening-status.open {
+  color: #22c55e;
+}
+
+.opening-status.closed {
+  color: #ef4444;
+}
+
+#openingIcon {
+  font-size: 1.2em;
+}
     .status {
       display: flex;
       align-items: center;
@@ -366,9 +385,14 @@ margin-top: -2px;
       </div>
 
       <div class="status">
-        <span class="pill"><span class="dot"></span>LIVE</span>
-        <span id="clock">--:--</span>
-      </div>
+  <span id="openingStatus" class="opening-status">
+    <span id="openingIcon">◷</span>
+    <span id="openingText">GESLOTEN</span>
+  </span>
+
+  <span class="pill"><span class="dot"></span>LIVE</span>
+  <span id="clock">--:--</span>
+</div>
     </header>
 
     <main>
@@ -834,6 +858,26 @@ window.beachDisplayStatusOntvangen = function(data) {
   if (!data || typeof data.live !== 'boolean') return;
 
   setLive(data.live);
+  // OPENINGSSTATUS SCHIJNDEL AAN ZEE
+const opening = data.openingstijden;
+
+const openingStatus = document.getElementById('openingStatus');
+const openingIcon = document.getElementById('openingIcon');
+const openingText = document.getElementById('openingText');
+
+if (openingStatus && openingIcon && openingText) {
+
+  const geopend = opening && opening.status === 'OPEN';
+
+  openingStatus.classList.toggle('open', geopend);
+  openingStatus.classList.toggle('closed', !geopend);
+
+  openingIcon.textContent = '◷';
+
+  openingText.textContent = geopend
+    ? 'OPEN · ' + opening.open + ' – ' + opening.dicht
+    : 'GESLOTEN';
+}
   // Automatische noodmeldingen
 if (Array.isArray(data.activeEmergencies)) {
   const meldingen = data.activeEmergencies;
