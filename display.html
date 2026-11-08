@@ -215,9 +215,11 @@ margin-top: -2px;
 }
 
 .crewTickerIcon {
-  width: 23px;
-  height: 23px;
+  width: 34px;
+  height: 34px;
   object-fit: contain;
+  object-position: center;
+  display: block;
   flex-shrink: 0;
 }
 
@@ -1012,7 +1014,7 @@ function renderCrewTicker(diensten) {
 
       const icoon = document.createElement('img');
       icoon.className = 'crewTickerIcon';
-      icoon.src = './loader-logo.png';
+      icoon.src = './schijndel-icon-blauw.png';
       icoon.alt = '';
       icoon.setAttribute('aria-hidden', 'true');
 
