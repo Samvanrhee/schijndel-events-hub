@@ -587,11 +587,11 @@ margin-top: -2px;
 
       if (previousMode && previousMode !== mode && live) {
         announce(
-          'mode-' + mode + '-' + h + ':' + m,
-          'BEACH MODE',
-          mode + ' MODE',
-          rules[mode].do.join(' • ')
-        );
+  'mode-' + mode + '-' + h + ':' + m,
+  'BEACH MODE GEWIJZIGD',
+  mode + ' MODE',
+  ''
+);
       }
 
       previousMode = mode;
@@ -736,6 +736,20 @@ if (
   item.emergency ? item.id || null : null;
       $('overlayTag').textContent = item.tag;
       $('overlayTitle').textContent = item.title;
+
+if (item.tag.startsWith('BEACH MODE')) {
+  const kleuren = {
+    QUIET: '#22c55e',
+    NORMAL: '#f59e0b',
+    PEAK: '#ef4444'
+  };
+
+  const mode = item.title.split(' ')[0];
+
+  $('overlayTitle').innerHTML +=
+    ' <span style="color:' + (kleuren[mode] || '#ffffff') +
+    ';">&#9889;</span>';
+}
       $('overlayText').textContent = item.message;
       $('overlay').style.display = 'flex';
       overlayUntil = Date.now() + 60000;
