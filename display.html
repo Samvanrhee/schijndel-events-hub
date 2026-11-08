@@ -206,12 +206,27 @@ margin-top: -2px;
 .crewTickerItem {
   display: inline-flex;
   align-items: center;
-  gap: 12px;
-  padding: 0 22px;
+  gap: 0;
+  padding: 0;
   font-size: clamp(12px, 1.1vw, 18px);
   font-weight: 600;
   color: #ffffff;
   white-space: nowrap;
+}
+
+.crewTickerItem > span {
+  display: inline-flex;
+  align-items: center;
+}
+
+.crewTickerIcon {
+  width: 34px;
+  height: 34px;
+  object-fit: contain;
+  object-position: center;
+  display: block;
+  flex-shrink: 0;
+  margin: 0 42px;
 }
 
 .crewTickerIcon {
