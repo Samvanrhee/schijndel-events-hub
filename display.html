@@ -157,7 +157,80 @@ margin-top: -2px;
       font-variant-numeric: tabular-nums;
       color: #c6d5e1;
     }
+/* CREW TICKER 2027 */
 
+#crewTicker {
+  display: flex;
+  align-items: center;
+  height: clamp(36px, 5vh, 52px);
+  min-height: 36px;
+  flex-shrink: 0;
+  background: #17283b;
+  border: 1px solid #34475b;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.crewTickerLabel {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  padding: 0 18px;
+  background: #68d2df;
+  color: #11111f;
+  font-weight: 850;
+  letter-spacing: .12em;
+  z-index: 1;
+}
+
+.crewTickerWindow {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+}
+
+#crewTickerTrack {
+  display: flex;
+  align-items: center;
+  width: max-content;
+  white-space: nowrap;
+  animation: crewTickerScroll 60s linear infinite;
+}
+
+.crewTickerGroup {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.crewTickerItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 22px;
+  font-size: clamp(12px, 1.1vw, 18px);
+  font-weight: 600;
+  color: #ffffff;
+  white-space: nowrap;
+}
+
+.crewTickerIcon {
+  width: 23px;
+  height: 23px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+@keyframes crewTickerScroll {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #crewTickerTrack {
+    animation: none;
+  }
+}
     main {
       flex: 1;
       min-height: 0;
@@ -476,7 +549,16 @@ margin-top: -2px;
         </div>
         <div class="foot">Noodmeldingen hebben altijd voorrang</div>
       </section>
-    </main>
+        </main>
+
+    <!-- CREW TICKER -->
+    <div id="crewTicker">
+      <div class="crewTickerLabel">CREW</div>
+      <div class="crewTickerWindow">
+        <div id="crewTickerTrack"></div>
+      </div>
+    </div>
+
   </div>
 
   <div id="standby">
@@ -880,6 +962,115 @@ if (item.tag.startsWith('BEACH MODE')) {
 
     setInterval(tick, 1000);
     tick();
+    /* CREW TICKER 2027 */
+
+let vorigeCrewTickerData = '';
+
+function renderCrewTicker(diensten) {
+  const track = document.getElementById('crewTickerTrack');
+  if (!track) return;
+
+  const lijst = Array.isArray(diensten) ? diensten : [];
+  const sleutel = JSON.stringify(lijst);
+
+  // Niet opnieuw tekenen als de roostergegevens gelijk zijn.
+  // Zo blijft de animatie soepel doorlopen.
+  if (sleutel === vorigeCrewTickerData) return;
+  vorigeCrewTickerData = sleutel;
+
+  track.replaceChildren();
+
+  if (!lijst.length) {
+    track.style.animation = 'none';
+
+    const melding = document.createElement('span');
+    melding.className = 'crewTickerItem';
+    melding.textContent = 'Geen crew ingepland voor vandaag';
+    track.appendChild(melding);
+    return;
+  }
+
+  function maakGroep() {
+    const groep = document.createElement('div');
+    groep.className = 'crewTickerGroup';
+
+    lijst.forEach(dienst => {
+      const item = document.createElement('span');
+      item.className = 'crewTickerItem';
+
+      const tekst = document.createElement('span');
+
+      const tijden = dienst.start +
+        (dienst.eind ? ' – ' + dienst.eind : '');
+
+      tekst.textContent = [
+        dienst.naam,
+        dienst.functie,
+        dienst.locatie,
+        tijden
+      ].filter(Boolean).join(' · ');
+
+      const icoon = document.createElement('img');
+      icoon.className = 'crewTickerIcon';
+      icoon.src = './loader-logo.png';
+      icoon.alt = '';
+      icoon.setAttribute('aria-hidden', 'true');
+
+      item.appendChild(tekst);
+      item.appendChild(icoon);
+      groep.appendChild(item);
+    });
+
+    return groep;
+  }
+
+  // Twee identieke groepen zorgen voor een naadloze herhaling.
+  const eerste = maakGroep();
+  const tweede = maakGroep();
+  tweede.setAttribute('aria-hidden', 'true');
+
+  track.appendChild(eerste);
+  track.appendChild(tweede);
+
+  // Bij een korte lijst meerdere diensten herhalen,
+  // zodat de ticker ook op brede schermen gevuld blijft.
+  const venster = track.parentElement;
+  const oorspronkelijkeBreedte = eerste.scrollWidth;
+
+  if (oorspronkelijkeBreedte > 0 && venster) {
+    const herhalingen = Math.max(
+      1,
+      Math.ceil(venster.clientWidth / oorspronkelijkeBreedte)
+    );
+
+    if (herhalingen > 1) {
+      const extra = lijst.slice();
+
+      for (let i = 1; i < herhalingen; i++) {
+        extra.forEach(dienst => lijst.push(dienst));
+      }
+
+      track.replaceChildren();
+
+      const groepA = maakGroep();
+      const groepB = maakGroep();
+      groepB.setAttribute('aria-hidden', 'true');
+
+      track.appendChild(groepA);
+      track.appendChild(groepB);
+    }
+  }
+
+  const afstand = track.firstElementChild.scrollWidth;
+
+  // Rustige, constante scrollsnelheid.
+  const duur = Math.max(25, afstand / 45);
+
+  track.style.animation = 'none';
+  void track.offsetWidth;
+  track.style.animation =
+    'crewTickerScroll ' + duur + 's linear infinite';
+}
     
 /* Automatische LIVE/STAND-BY-koppeling met de Hub */
 
@@ -890,6 +1081,8 @@ window.beachDisplayStatusOntvangen = function(data) {
   if (!data || typeof data.live !== 'boolean') return;
 
   setLive(data.live);
+    // Crew Ticker automatisch bijwerken vanuit het rooster
+  renderCrewTicker(data.crewDiensten);
   // OPENINGSSTATUS SCHIJNDEL AAN ZEE
 const opening = data.openingstijden;
 
