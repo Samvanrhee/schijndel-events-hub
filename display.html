@@ -902,10 +902,15 @@ if (item.tag.startsWith('BEACH MODE')) {
   };
 
   const mode = item.title.split(' ')[0];
+  const kleur = kleuren[mode] || '#ffffff';
 
   $('overlayTitle').innerHTML +=
-    ' <span style="color:' + (kleuren[mode] || '#ffffff') +
-    ';">&#9889;</span>';
+    ' <svg class="mode-zap" viewBox="0 0 24 24" ' +
+    'width="1em" height="1em" ' +
+    'fill="' + kleur + '" ' +
+    'xmlns="http://www.w3.org/2000/svg">' +
+    '<path d="M13 2L3 14h7l-1 8 12-13h-8l0-7z"/>' +
+    '</svg>';
 }
       $('overlayText').textContent = item.message;
       $('overlay').style.display = 'flex';
