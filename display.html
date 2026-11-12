@@ -187,6 +187,9 @@ margin-top: -2px;
   flex: 1;
   min-width: 0;
   overflow: hidden;
+}
+
+    .crewTickerEmpty {
   padding-left: 18px;
 }
 
@@ -1012,7 +1015,7 @@ function renderCrewTicker(diensten) {
     track.style.animation = 'none';
 
     const melding = document.createElement('span');
-    melding.className = 'crewTickerItem';
+    melding.className = 'crewTickerItem crewTickerEmpty';
     melding.textContent = 'Geen crew ingepland voor vandaag';
     track.appendChild(melding);
     return;
