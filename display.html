@@ -738,8 +738,9 @@ if (t >= 21 * 60 + 30) return 'PEAK';
 if (t < 30) return 'NORMAL';
 
 return 'QUIET';
+}
 
-    function tick() {
+function tick() {
       const { h, m } = amsterdamParts();
 
       $('clock').textContent =
