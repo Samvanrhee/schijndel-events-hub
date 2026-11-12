@@ -725,11 +725,14 @@ margin-top: -2px;
       const t = h * 60 + m;
 
       if (t >= 17 * 60 && t < 20 * 60 + 30) return 'QUIET';
-      if (t >= 20 * 60 + 30 && t < 22 * 60) return 'NORMAL';
-      if (t >= 22 * 60 || t < 30) return 'PEAK';
 
-      return 'QUIET';
-    }
+if (t >= 20 * 60 + 30 && t < 21 * 60 + 30) return 'NORMAL';
+
+if (t >= 21 * 60 + 30) return 'PEAK';
+
+if (t < 30) return 'NORMAL';
+
+return 'QUIET';
 
     function tick() {
       const { h, m } = amsterdamParts();
